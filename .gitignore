@@ -1,0 +1,40 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.maf
+*.mtc
+*.mtc*
+*.nav
+*.out
+*.ptc
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+
+# Latexmk and temporary files
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.idx
+*.ilg
+*.ind
+*.ist
+*.lol
+*.tdo
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/

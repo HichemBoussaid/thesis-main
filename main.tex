@@ -1,0 +1,238 @@
+\documentclass[12pt]{book}
+%\usepackage{natbib}
+\usepackage[
+	backend=bibtex,
+	style=numeric,
+]{biblatex}
+\addbibresource{bibliographie}
+
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper,left=3cm,right=2.5cm,top=3cm,bottom=3cm, twoside]{geometry}
+\usepackage{xcolor}
+\usepackage{stmaryrd}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{libertine}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{apalike}
+\usepackage{minitoc}
+\usepackage{tikz}
+\usepackage{enumitem}
+\usepackage{epigraph}
+%\usetikzlibrary{shadows.blur}
+\usepackage{lscape}
+\usepackage{titletoc}
+%\usepackage{lipsum}
+%\usepackage{cite}
+\usepackage{booktabs}
+
+\usepackage[nonumberlist]{glossaries}
+\usepackage{calc}
+\usepackage[]{titlesec} 
+\definecolor{linkColor}{HTML}{32a852}
+\usepackage[colorlinks=true,citecolor=linkColor,linkcolor=black]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{lipsum}
+\usepackage{spconf}
+\usepackage{amsmath}
+\usepackage{epsfig}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{arydshln}
+\usepackage{multirow}
+\usepackage{bbding}
+\usepackage{booktabs}
+\usepackage{makecell}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{Commands}
+\usepackage{etoolbox} 
+\usepackage{arydshln}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\headheight}{15pt}
+
+\definecolor{yourcolor}{HTML}{8a0e19}%{008bb2}
+
+\titleformat{\chapter}[display]
+{\normalfont\color{yourcolor}}
+{\filleft\huge\color{black}\textsc\chaptertitlename\hspace*{2mm}%
+	\begin{tikzpicture}[baseline={([yshift=-.6ex]current bounding box.center)}]
+	\node[fill=yourcolor,circle,text=white] {\thechapter};
+	\end{tikzpicture}
+}
+{1ex}
+{\titlerule[1.5pt]\vspace*{1.5ex}\Huge\color{black}\textsc}
+[]
+
+\titleformat{name=\chapter,numberless}[display]
+{\normalfont\color{black}}
+{}
+{1ex}
+{\vspace*{-5cm}\Huge\textsc}
+[]
+
+%command to print the acutal minitoc
+\newcommand{\printmyminitoc}[1]{%
+	\noindent\hspace{1cm}%
+	\colorlet{chpnumbercolor}{black}%
+	\begin{tikzpicture}
+	\node(s){
+		\begin{minipage}{.9\linewidth}%minipage trick
+		\printcontents[chapters]{}{1}{}
+		\end{minipage}
+	};
+	{
+		\color{yourcolor}
+		\draw(s.north west)--(s.north east) (s.south west)--(s.south east);
+	}
+	\end{tikzpicture}
+	\vspace*{3ex}
+	
+	#1
+	\vfill
+	\pagebreak
+}
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.7mm}}
+\newcommand{\Hrule}{\rule{\linewidth}{0.3mm}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\begin{document}
+	
+	\begin{titlepage}
+		\begin{center}
+			\begin{tabular}{c@{\hskip 3cm}c}
+				\includegraphics[height=1cm]{images/UPC/logo-UPCite.jpeg} &
+				\includegraphics[height=1cm]{images/UPC/LIPADE.png}\\
+			\end{tabular}
+		\end{center}
+	
+		
+		\begin{center}
+
+			Université Paris Cité\\
+			Laboratoire d’Informatique Paris Descartes (EA 2517)
+  
+  			\vfill
+  			
+	 		\HRule \\[0.1cm]
+	 		 { \Large \bfseries     Exploration des synergies entre différentes tâches\\
+        s'appuyant sur l'imagerie de télédétection multimodale\\
+        et le texte pour un accès facilité à l'information	 }
+	  		\Hrule \\
+		
+		\end{center}
+		
+		\vfill
+			
+		\begin{center}
+			Presented by \textsc{\Large Hichem BOUSSAID}\\[1cm] 
+			PhD thesis in \textsc{\large SPECIALTY}\\[1cm]
+		
+	
+			
+			\vspace{1cm}
+	
+			June 2021
+		\end{center}
+		
+		\vspace{1cm}
+			
+		
+		\begin{center}
+			\begin{tabular}{lll}
+				 \textsc{FULLNAME}  &  \textsc{Grade} & Reporter\\
+				\textsc{FULLNAME}  &  \textsc{Grade} & Reporter \\
+				\textsc{FULLNAME}  &  \textsc{Grade} & Supervisor\\
+				\textsc{FULLNAME}  &  \textsc{Grade} & Supervisor \\
+				
+			\end{tabular}\\[1cm]
+		\end{center}
+
+	\newpage
+	\end{titlepage}
+
+
+
+\pagestyle{fancy}
+
+\fancyhead{}
+
+\renewcommand{\chaptermark}[1]{\markboth{\textsc{#1}}{}}
+
+
+
+\frontmatter
+
+\input{Chapters/Preface/Resume.tex}
+
+\input{Chapters/Preface/Abstract.tex}
+
+\input{Chapters/Preface/Acknowledgments.tex}
+
+\tableofcontents
+\addcontentsline{toc}{chapter}{Table des matières}
+
+\listoffigures
+\addcontentsline{toc}{chapter}{Liste des figures}
+
+\listoftables
+\addcontentsline{toc}{chapter}{Liste des tableaux}
+
+\input{Chapters/Preface/intro.tex}
+
+\mainmatter
+
+\setlength{\parskip}{.7em}
+
+\titlespacing*{\section}{0pt}{.9em}{.8em}
+\renewcommand{\baselinestretch}{1.1}
+
+
+\fancyhead[RO]{\leftmark}
+\fancyhead[LE]{\textsc{\chaptername~\thechapter}}
+
+
+\part{Introduction}
+\input{Chapters/Introduction/RemoteSensingInformationAccess}
+\input{Chapters/Introduction/RelatedWorks.tex}
+\input{Chapters/Introduction/Contributions.tex}
+
+%\part{Remote Sensing Visual Question Answering}
+
+\input{Chapters/RSVQA/JURSE.tex}
+\input{Chapters/RSVQA/Seg.tex}
+\input{Chapters/RSVQA/TAMMI.tex}
+
+
+
+%\part{Toward Multi-Task Synergies}
+%\input{Chapters/MULTITASK/QUEST.tex}
+%\input{Chapters/MULTITASK/CTCR-RS.tex}
+
+
+\part{Conclusion}
+\input{Chapters/conclusion.tex}
+
+
+\printbibliography
+\addcontentsline{toc}{chapter}{Bibliographie}
+
+\end{document}

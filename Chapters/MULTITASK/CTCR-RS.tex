@@ -1,0 +1,24 @@
+\chapter{CTCR-RS: Composed Temporal Change Retrieval in Remote Sensing}
+\epigraph{\itshape  La volonté trouve, la liberté choisit. Trouver et choisir, c'est penser}{-- Victor Hugo}
+
+\startcontents[chapters]
+\printmyminitoc{
+%	\lipsum[1]
+}
+
+\begin{abstract}
+
+The rapid growth of Earth Observation (EO) archives has increased the demand for retrieval systems that can query how landscapes evolve over time. While composed retrieval has shown strong performance for single images and videos, existing formulations are not directly applicable to multi-temporal remote sensing images (acquired on the same location at different times) for land-use land-cover change retrieval. 
+To bridge this gap, we introduce Composed Temporal Change Retrieval in Remote Sensing (CTCR-RS). In this task, given a reference pair of images (i.e., bi-temporal images) depicting initial land-use land-cover changes and a textual query specifying an additional change absent from the reference pair, the task is to retrieve a target pair exhibiting the composed semantic change (i.e., image and text changes).
+To support this setting, we construct the CTCR-RS dataset, the first large-scale dataset for composed change retrieval in remote sensing, comprising over 30,000 compositional triplets. By normalizing free-form change captions into a structured geospatial ontology, we formulate compositional ground truths as the union of visual and textual change sets. 
+We establish two strong baselines: UniCTCR, which relies on implicit latent multi-modal fusion, and StageCTCR, which adapts pretrained Vision-Language Models via LoRA for staged semantic composition and retrieval. Our results show that explicitly separating semantic composition from retrieval consistently outperforms implicit latent fusion, providing a strong baseline for CTCR-RS. Code, model weights, and the CTCR-RS dataset will be made publicly available upon acceptance.
+ 
+\keywords{Composed Change Retrieval \and Remote Sensing \and Vision-Language Models}% \and Change Retrieval}
+%  \and Bi-Temporal Reasoning
+\end{abstract}
+
+
+\section{Introduction}
+
+
+\section{Model}
