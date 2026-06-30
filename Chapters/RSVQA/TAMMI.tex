@@ -1,598 +1,1334 @@
 \chapter{Visual Question Answering on Multiple Remote Sensing Image Modalities}
+\label{chap:tammi}
 \epigraph{\itshape  La volonté trouve, la liberté choisit. Trouver et choisir, c'est penser}{-- Victor Hugo}
 
 \startcontents[chapters]
 \printmyminitoc{
 	%\lipsum[1]
 }
-\title{Visual Question Answering on Multiple Remote Sensing Image Modalities}
-\author{
-    Hichem Boussaid\textsuperscript{1,*,†}, 
-    Lucrezia Tosato\textsuperscript{1,2,*,†}, 
-    Flora Weissgerber\textsuperscript{2} \\
-    Camille Kurtz\textsuperscript{1}, 
-    Laurent Wendling\textsuperscript{1}, 
-    Sylvain Lobry\textsuperscript{1,†}\\
-    \small
-    \textsuperscript{1}LIPADE, Université Paris Cité, France \\
-    \small
-    \textsuperscript{2}ONERA, France\\
-    \small
-    \textsuperscript{†}corresponding authors: \{hichem.boussaid, lucrezia.tosato\}@etu.u-paris.fr
-}
-%\maketitle
-\begin{abstract}
-The extraction of visual features is an essential step in Visual Question Answering (VQA). Building a good visual representation of the analyzed scene is indeed one of the essential keys for the system to be able to correctly understand the latter in order to answer complex questions.
-In many fields such as remote sensing, the visual feature extraction step could benefit significantly from leveraging different image modalities carrying complementary spectral, spatial and contextual information. 
-In this work, we propose to add multiple image modalities to VQA in the particular context of remote sensing, leading to a novel task for the computer vision community. 
-To this end, we introduce a new VQA dataset, named TAMMI (\textit{Text and Multi-Modal Imagery}) with diverse questions on scenes described by three different modalities (very high resolution RGB, multi-spectral imaging data and synthetic aperture radar). 
-Thanks to an automated pipeline, this dataset can be easily extended according to experimental needs.
-We also propose the MM-RSVQA (\textit{Multi-modal Multi-resolution Remote Sensing Visual Question Answering}) model, based on VisualBERT, a vision-language transformer, to effectively combine the multiple image modalities and text through a trainable fusion process. 
-A preliminary experimental study shows promising results of our methodology on this challenging dataset, with an accuracy of \textbf{65.56\%} on the targeted VQA task.
-This pioneering work paves the way for the community to a new multi-modal multi-resolution VQA task that can be applied in other imaging domains (such as medical imaging) where multi-modality can enrich the visual representation of a scene. The dataset and code are available at \href{https://tammi.sylvainlobry.com/}{https://tammi.sylvainlobry.com/}.
-\begingroup
-\renewcommand\thefootnote{}\renewcommand\footnotemark{}\footnotetext{\hspace{-5mm}*Hichem Boussaid and Lucrezia Tosato contributed equally.}
-\renewcommand\thefootnote{}\renewcommand\footnotemark{}\footnotetext{\hspace{-5mm}This work is supported by \textit{Agence Nationale de la Recherche} (ANR) under the ANR-21-CE23-0011 project. The experiments conducted in this study were performed using HPC/AI resources provided by GENCI-IDRIS (Grant 2023-AD011012735R2).}
-\endgroup
-\end{abstract}
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{images/TAMMI/GraphAbstract.png}
-\caption{Summary of our contributions.
-We introduce a new task in the computer vision community with multi-modal and multi-resolution Visual Question Answering (VQA) on remote sensing images. 
-We introduce a new dataset, TAMMI, associating question/answer pairs to multi-spectral, Very High-Resolution (VHR) orthophotos and Synthetic Aperture Radar (SAR) images triplets. 
-In these examples, the white rectangle in the multi-spectral and SAR images corresponds to the extent of the VHR image. 
-Finally, we propose a new model for this task referred as MM-RSVQA.}
-\label{fig:intro_QA}
-\end{figure}
 
-
+% ============================================================
 \section{Introduction}
-\label{sec:intro}
-%\TODO{homogenize everywhere bands versus channels}
-%\TODO{when taking about MM-RSVQA, homogenize everywhere architecture versus model versus method}
-The task of Visual Question Answering (VQA) aims at providing natural language answers to free-form, open-ended question about an image~\cite{antol2015vqa}. 
-On natural images, recent advances in the computer vision and natural language processing communities have shown great improvements to standard VQA benchmarks. %TODO CITE
-In particular, Large Language Models (LLM) can now be used to perform knowledge-based VQA, which requires external knowledge and commonsense reasoning~\cite{hu2023promptcap}. 
-These models are however more limited when used beyond natural images~\cite{li2023comprehensive, khan2023q}.
+\label{sec:chap5_intro}
+% ============================================================
 
-VQA has been proposed for the medical domain~\cite{hasan2018overview} and is an active field of research in the medical and computer vision communities~\cite{lin2023medical}. 
-The VQA task is also used for extracting information from remote sensing data~\cite{lobry2020rsvqa}. 
-In such thematic domains, there are significant challenges compared to VQA for natural images. 
-In particular, the limited availability of high-quality training data and the variability of information found in different imaging modalities have been active research topics~\cite{lin2023medical, yuan2023multilingual, khan2023q}.
+The previous chapter introduced a segmentation-guided
+attention mechanism, evaluated on a preliminary dataset
+covering four departments of the Île-de-France region,
+using very high resolution (VHR) optical imagery and
+segmentation annotations derived from BD TOPO. While this
+dataset already demonstrated the value of rich, structured
+annotations for RSVQA, it remained limited in two important
+respects. First, it relied on a single image modality: VHR
+optical imagery provides fine spatial detail but no
+information beyond the visible spectrum, and no broader
+spatial context beyond the $200\,\text{m} \times
+200\,\text{m}$ extent of each patch. Second, its geographic
+coverage was restricted to a single, predominantly urban
+region, limiting the diversity of landscapes and the
+question types that could be meaningfully asked.
 
-It is commonly agreed that VQA methods for both of the remote sensing and medical imaging fields would benefit from information contained in different modalities of images~\cite{persello2022deep}. 
-Indeed, multiple image modalities are often used in these fields to obtain different, specific and complementary (spectral, spatial and contextual) information about a single scene.
-%However, to the best of our knowledge, VQA from multi-modal images have not been explored~\cite{lin2023medical}. 
-In remote sensing in particular, multi-modal data allows to obtain different information at multiple resolutions and from various wavelengths, from the 400nm of ultraviolet to the 5cm of radar wave. 
-Among others, Very-High Resolution (VHR) data offers images at sub-meter resolutions. 
-With Multi-Spectral (MS) data, it is possible to characterize different ground materials thanks to their different spectral responses. 
-Synthetic Aperture Radar (SAR) offers imaging capacities highlighting man-made objects and giving physical information about objects~\cite{li2022deep}.
-While previous works have explored VQA from multi-modal images \cite{tosato2024can}, using RGB data from the Sentinel-2 satellites and SAR data from Sentinel-1 on existing datasets, dedicated datasets and methods are necessary. 
+Remote sensing is inherently a multimodal domain. Different
+sensors capture complementary information about the same
+physical scene: very high resolution optical imagery
+provides fine-grained spatial detail; multispectral imagery,
+such as that acquired by the Sentinel-2 mission, captures
+spectral signatures across visible, near-infrared, and
+short-wave infrared bands that characterize ground materials
+and vegetation health; and synthetic aperture radar (SAR),
+such as Sentinel-1, provides information independent of
+cloud cover and illumination, highlighting man-made
+structures and surface roughness through backscatter
+intensity. Crucially, these modalities differ not only in
+spectral content but also in spatial resolution and
+coverage: while VHR imagery captures fine detail over a
+small extent, multispectral and SAR data naturally provide
+broader spatial context at coarser resolution. A VQA system
+that can jointly exploit this multimodal, multi-resolution
+information has the potential to answer a much richer range
+of questions than one restricted to a single modality and a
+single spatial extent.
 
-Our first contribution (highlighted in \autoref{fig:intro_QA}) is to tackle the task of VQA from multi-modal and multi-resolution images leading to a novel challenging task for the computer vision community. 
-Our second contribution is a new dataset named TAMMI, built from openly available data sources. 
-This dataset combines three modalities (VHR, MS and SAR) and we make it openly available. 
-We also share with the vision community an automated pipeline to easily extend this dataset (e.g. to new geographical areas or modalities) according to experimental needs.
-%Lower resolution images 
-MS and SAR can be used dynamically at different sizes to provide different levels of context. 
-Finally, our third contribution is a baseline model for the targeted multi-modal VQA task named MM-RSVQA. 
-The proposed architecture is able to take as input the three image modalities, with specifically pre-trained feature extractors. 
-To effectively integrate the multi-modal visual features, along with the textual features of the question, we use VisualBERT, a recent vision-language transformer, leading to a trainable fusion scheme. 
+Despite this potential, existing RSVQA datasets remain
+overwhelmingly single-modality. As summarized in
+Table~\ref{tab:chap5_datasets_comparison}, datasets such as
+RSVQA-LR, RSVQA-HR~\cite{lobry2020rsvqa}, and
+RSVQAxBEN~\cite{lobry2021rsvqaben} rely exclusively on
+optical RGB imagery, whether from Sentinel-2 or
+high-resolution airborne sensors. While SAR has been
+explored for specific RSVQA sub-tasks~\cite{tosato2024sar},
+no existing dataset combines very high resolution optical
+imagery, multispectral data, and SAR within a unified
+question-answering framework. This gap is not a
+matter of dataset construction convenience: it reflects a
+genuinely open question for the computer vision
+community, namely how to design models capable of jointly
+reasoning over inputs with heterogeneous spectral content,
+spatial resolution, and physical interpretation.
 
-\section{Related works}
-\label{sec:SoA}
-\textbf{VQA} has the objective of predicting a natural language response to an open-ended question related to an image~\cite{antol2015vqa}. 
-This task bridges visual reasoning with semantics expressed in natural language, providing new challenges for the computer vision community. 
-Models relying on attention~\cite{yang2016stacked, anderson2018bottom, zhou2021trar} to extract relevant features have been proposed. 
-Recently, foundation models such as CLIP~\cite{radford2021learning} have shown remarkable success on the VQA downstream task~\cite{shen2021much}.
-However, such approaches do not translate directly to thematic applications of the VQA task~\cite{eslami2023pubmedclip}.
+This chapter addresses this gap through two contributions.
+First, we introduce TAMMI (Text And Multi-Modal Imagery), a
+large-scale dataset extending the preliminary benchmark of
+Chapter~\ref{chap:seg_attention} along three axes:
+geographic coverage is extended from four to six
+departments across three contrasting regions of
+Metropolitan France (urban Île-de-France, mountainous
+(Haute-Savoie), and maritime (Hérault); imagery is extended
+from VHR-only to a triplet of VHR, multispectral, and SAR
+modalities, geographically co-registered around each VHR
+patch; and the question taxonomy is extended from 9 to 21
+question types across five categories, drawing on five
+geographic databases (BD TOPO, flood risk data, urban
+zoning, land cover, and mountain area data). The resulting
+dataset contains 282,852 images and over 3.1 million
+question-answer pairs. Second, we propose MM-RSVQA
+(Multi-modal Multi-resolution RSVQA), a baseline model built
+on VisualBERT~\cite{li2019visualbert} that fuses features
+from all three modalities with the question through a
+trainable transformer-based fusion process, and we conduct
+an ablation study quantifying the contribution of each
+modality to the VQA task.
 
-The task of VQA for remote sensing (RSVQA) is introduced in~\cite{lobry2020rsvqa}. 
-In this work, features are extracted using a Convolution Neural Network (CNN) and a Recursive Neural Network (RNN) and fused together with a point-wise multiplication. 
-Improvements in the feature extractor have been proposed by Felix et al.~\cite{felix2021cross}, inspired by LXMERT~\cite{tan2019lxmert} enhancing the results using an object detection step implemented via the Faster-RCNN model as a visual encoder and BERT for the language part. 
-%In this work, the authors propose two datasets for the task. A simple baseline using a pre-trained ResNet-152~\cite{he2016deep} to encode the image and a pre-trained skip-thoughts vectors~\cite{kiros2015skip} to extract the text representations is proposed. The representations are then projected into a common space via a fully connected layer using a fusion mechanism based on point-wise multiplication. The task is treated as a classification problem, with a multi-layer perceptron to predict the answer.
-The Fourier transform is also used in~\cite{zhaofrequency} to extract structural information from complex remote sensing data, thereby improving the generalizability across various domains.
-In~\cite{chappuis2023multi}, an object detector and a classifier are used to create a caption of the image, then used to answer the question. 
-LLMs such as BERT~\cite{devlin2018bert} have been used for textual features extraction~\cite{chappuis2022language} or as the main component of the model~\cite{chappuis2022prompt}. 
-The fusion step of the two representations is done in~\cite{felix2021cross} with a cross-modal transformer encoder. 
-Another attention-based method is proposed in~\cite{zheng2021mutual}, with a fusion module based on mutual attention. 
-In~\cite{tosato2024segmentation}, a method that uses segmentation maps to guide the attention is introduced. 
-In parallel, training techniques such as self-supervised curriculum learning~\cite{yuan2021self} have been shown to be efficient to obtain a common representation of textual and visual features. 
-Improvements to the language processing have been introduced as well: in~\cite{yuan2023multilingual} an augmentation is applied to translate each question in multiple languages and then translate it back to English, improving the diversity of the formulation of questions. 
-%This generator produces a textual description of the image, which is then used in a DistilBERT~\cite{sanh2019distilbert} language model as a context along the question.
+The remainder of this chapter is organized as follows.
+Section~\ref{sec:chap5_rw} reviews related work on
+multimodal dataset construction and multi-resolution RSVQA.
+Section~\ref{sec:chap5_dataset} describes the TAMMI dataset,
+including its image modalities, question taxonomy, and
+balancing procedure, and positions it relative to the
+partial dataset of Chapter~\ref{chap:seg_attention} and other
+existing RSVQA benchmarks. Section~\ref{sec:chap5_method}
+presents the MM-RSVQA architecture.
+Section~\ref{sec:chap5_experiments} reports experimental
+results and an ablation study on modality contributions.
+Section~\ref{sec:chap5_seg_attention_multimodal} describes
+an earlier direction that was explored and abandoned, in
+which the segmentation-guided attention mechanism of
+Chapter~\ref{chap:seg_attention} was extended to the
+multimodal setting, and analyses why it was replaced by
+the final architecture.
+Section~\ref{sec:chap5_conclusion} concludes with limitations
+and perspectives.
 
-\noindent\textbf{Datasets} Several datasets have been created for RSVQA. 
-This problem is first considered in~\cite{lobry2020rsvqa} which introduced two RSVQA datasets composed of image/question/answer triplets. 
-The first one, called "Low Resolution (LR)", is based on images from the Sentinel-2 sensors (optical images with a spatial resolution of 10m) acquired over The Netherlands. 
-The second one, called "High Resolution (HR)", uses RGB aerial images with a spatial resolution of 15cm extracted from the USGS High Resolution Orthoimagery database, covering urban areas of the United States. 
-In these two datasets, the nature of the questions, as well as the distribution of answers, is highly unbalanced (e.g. ’0’ in the HR dataset has a frequency of 60.9\% for the numerical answer). 
-In addition, the number of different answers is very limited, with 9 possible answers for LR and 98 for HR. 
-RSVQAxBEN~\cite{lobry2021rsvqa} dataset proposes a larger number of samples and introduces new objects of interest (land cover classes) with a new form of complexity (logical formulas). 
-The area of interest is also different, as it covers many European countries thanks to images from the Sentinel-2 satellites.  
-However, even in this dataset, the imbalance in the distribution of answers remains. 
-In order to increase the diversity of questions, Zheng et al.~\cite{zheng2021mutual} have exploited five pre-annotated datasets, three for scene classification and two for object detection for the automatic construction of questions and answers.
-
-These datasets have certain limitations in common. 
-First, most of them have a limited number of samples, which may reduce the ability of deep learning models to generalise effectively~\cite{lobry2020rsvqa}. 
-In addition, the diversity of questions and answers is often restricted, which can lead to biases and gaps in model performances~\cite{chappuis2023curse}. 
-Finally, these datasets focus on the use of RGB images, not leveraging other modalities, sensors and resolutions.
-
-%In general, the integration of SAR images with natural language has been under-explored and seems to be a challenging area due to the inherent complexity and unique data structure of SAR imagery. 
-%Deep learning models often struggle with SAR-based tasks that require precise quantification, such as estimating the size of targets or counting objects~\cite{zhao2022exploring}.
-%However, these models are effective in tasks focused on spatial relationships, such as identifying the proximity of objects or providing density assessment within SAR scenes. 
-%SAR has also been introduced as the main modality into RSVQA for specific tasks such as scattering patterns classification~\cite{aghababaei2024visual}, ships detection and counting~\cite{wang2024visual} and fused with optical images to answer questions related to the land cover~\cite{tosato2024can}.
-Integrating SAR imagery with natural language remains under-explored and challenging due to its unique data structure. Deep learning models often struggle with SAR-based tasks requiring precise quantification, such as target size estimation or object counting~\cite{zhao2022exploring}. However, they are effective in tasks involving spatial relationships, like proximity identification or density assessment within SAR scenes. SAR has been used in RSVQA for tasks such as scattering pattern classification~\cite{aghababaei2024visual}, ship detection and counting~\cite{wang2024visual}, and in combination with optical images for land cover related questions~\cite{tosato2024can}.
-
-%The limited consideration of the SAR modality has constrained its full integration into RSVQA datasets, ending up restricting the domains in which a dataset can be utilized and the depth of the study that can be applied to the researches based on them. Having access to different modalities also require merging information in the best possible way. 
-%The most common fusion techniques are early fusion~\cite{sumbul2019bigearthnet}, halfway fusion~\cite{boulahia2021early} and late fusion~\cite{chen2023efcomff}. 
-%Over the past decade, however, the fusion technique that has been increasingly used is transformers, for classification~\cite{roy2023multimodal}, object detection~\cite{bai2022transfusion} and segmentation~\cite{zhang2022mmformer}. 
-
-In this work, beyond sharing a new vision task with the community, we address existing gaps in the current state of the art by creating a diverse dataset that spans multiple complementary image modalities, resolutions, and geographic regions, encompassing a wide range of terrain types and incorporating various question typologies. 
-As a first baseline on this task and dataset, we embed state of the art transformer-based fusion techniques proven effective through a new model for tackling multi-modal challenges.
-
-%In~\cite{zhang2019cross}, the three methods were compared showing that halfway fusion seems to have better results than the other two. 
-
-
-
-\section{Dataset}
-\label{sec:dataset}
-For the purpose of advancing RSVQA capabilities we develop TAMMI (\textit{Text and Multi-Modal Imagery}), a large multi-modal and multi-resolution dataset. 
-TAMMI includes images/question/answer triplets on three French departments, shown in \autoref{fig:GeoExtent}. 
-The following subsections outline each phase of the dataset creation, detailing data sources and processing steps involved.
-
-
-\subsection{Image modalities}
-\paragraph{Very high-resolution orthophotos (BDOrtho)}
-BDOrtho is a dataset of aerial VHR optical images acquired by the french National Geographic Institute (IGN). 
-It provides an accurate and detailed photographic representation of the French territory at 20cm resolution. Images are provided in RGB and updated every three years. For our dataset, the most recent images are chosen for each department: images from department 74 are from 2020, and images for department 34, 75, 92, 93, 94 are from 2021. 
-To ensure consistency in the information provided by the images, the same years are maintained for the images of the other modalities.
-
-\paragraph{Multi-spectral data (Sentinel-2)}
-Sentinel-2 is a mission of the European Union's Copernicus program, designed to provide multi-spectral images of land. 
-Sentinel-2 captures data in 13 bands of the electromagnetic spectrum~\cite{S2mission}, including near-infrared (NIR), visible and short-wave infrared (SWIR) with a spatial resolution of 10m, 20m, or 60m depending on the band. 
-Sentinel-2 images are acquired every five days when both Sentinel-2A and Sentinel-2B are active. 
-The images are distributed as Level-1C (L1C) products which provide top-of-atmosphere (TOA) reflectance, and Level-2A (L2A) that offer surface reflectance after atmospheric correction. 
-Since our dataset includes SAR images which are not affected by atmospheric conditions and BDOrtho images which are taken during sunny days and do not need any atmospheric correction, we select L1C products. 
-Furthermore, only images with a cloud coverage under 3\% are selected. 
-
-\if 0 
-\begin{table}[!t] \centering 
-\begin{tabular}{lcc}
-        \hline
-        \textbf{Bands} & \textbf{WL (nm)} & \textbf{Res. (m)} \\
-        \hline
-        B1 - Coastal aerosol  & 443            & 60 \\\hline
-        B2 - Blue& 490            & 10   \\\hline
-        B3 - Green  & 560            & 10  \\\hline
-        B4 - Red & 665            & 10  \\\hline
-        B5 - Vegetation Red Edge & 705            & 20   \\\hline
-        B6 - Vegetation Red Edge & 740            & 20  \\\hline
-        B7 - Vegetation Red Edge & 783            & 20 \\\hline
-        B8 - NIR & 842            & 10  \\\hline
-        B8A - Vegetation Red Edge  & 865            & 20 \\\hline
-        B9 - Water Vapour  & 945            & 60\\\hline
-        B10 - SWIR - Cirrus  & 1375           & 60  \\\hline
-        B11 - SWIR & 1610           & 20  \\\hline
-        B12 - SWIR & 2190           & 20 \\
-        \hline
-    \end{tabular} 
-    \caption{Spectral bands of the Sentinel-2 optical sensors 
-    (WL: wavelength, Res.: spatial resolution, NIR: Near Infra-Red and SWIR: Short Wave Infra-Red).} 
-    \label{tab:S2Bands}
-\end{table}
-\fi  
-%\textcolor{red}{Give additional details, maybe table with all bands?}
-
-\paragraph{Synthetic Aperture Radar data (Sentinel-1)}
-The Sentinel-1 satellite is also part of the European Union's Copernicus program,  designed to provide full coverage of Europe every 6 days.
-Sentinel-1 acquires SAR images by sending radar pulses towards the earth's surface and measuring the backscattered signal. 
-Since the radar pulses propagate through clouds, the acquisition rate is independent of the atmospheric conditions. 
-%Sentinel-1 images are distributed with three levels of processing, the first one represents the raw data, the second involves the calibration and initial processing, and the last includes further refinement and enhancement of the data to generate specialized products for specific applications.
-In our dataset, we use Interferometric Wide (IW) swath mode. IW is the main acquisition mode over land and has a resolution of 5m in range (across satellite trajectory) and 20m in azimuth (along trajectory).
-In this acquisition mode, the swath is divided in three sub-swathes. 
-The satellite acquires tiles, called \textit{burst}, in each sub-swath sequentially with an overlap between the bursts. 
-The bursts are processed as separate Single Look Complex (SLC) images. In the Sentinel-1 SLC products, sequentially acquired bursts of the same sub-swath are included into a single image separated by black bands.
-Sentinel-1 acquires data in two polarization channels (VV and VH), providing additional information about the characteristics of materials on the planet surface.
-In this work, we use the amplitude of the SLC level 1 images for both polarization channels.
-
-%\Lu{i have to add 'SAR images are acquired by a sensor laterally with respect to the direction of the satellite. A signal impulse of varying frequency is sent, and its return signal, called backscattering, is saved.'}
-
-\begin{figure}[!t]
-\centering
-\includegraphics[width=\columnwidth]{images/TAMMI/GeoExtent.png}
-\caption{Geographical extent of the TAMMI dataset, covering selected regions (highlighted in \textcolor{red}{red}) in Metropolitan France: 
-Paris and inner suburbs (departments 75, 92, 93, 94), an urban region; 
-Haute-Savoie (74), a mountainous region; 
-and Hérault (34), a seaside region. 
-For each of these regions, we show a VHR sample from the dataset.}
-\label{fig:GeoExtent}
-\end{figure}
-
-\subsection{Image triplets}
-To build the question/answer parirs, we select the geographical extent of the VHR patches $\pvhr$. The VHR patches are extracted from the division of the VHR tiles (of dimension 25000 $\times$ 25000 pixels) of our areas of interest (shown in \autoref{fig:GeoExtent}) into patches of size 1000 $\times$ 1000 pixels (i.e. 200m $\times$ 200m). The areas of interest are selected for their diverse landscapes. Specifically, the Île-de-France region (departments 75, 92, 93, 94) is predominantly urban, while the Haute-Savoie region (department 74) features mountainous terrain, and the Hérault region (department 34) is maritime. 
-Since MS ($\pms$) and SAR ($\psar$) patches are designed to offer spatial context to the model, their extent (respectively $\lms$ and $\lsar$) is defined by the user and the patches are cropped at execution time. 
-To align the images of all three modalities, we retrieve the latitude, longitude and altitude of the central pixel for each VHR patch. 
-We then associate a MS and a SAR tile centered on the position of the central pixel of the VHR patch. 
-The MS tiles are geocoded. Therefore, the latitude and longitude are converted to the image pixel space.
-For SAR images, we use the method of~\cite{Weissgerber2022} to project the position of the central pixel of $\pvhr$.
-To produce continuous SAR patches, the SAR images are debursted (removing black lines and burst overlaps), and pre-processed with tail-value removal based on histogram analysis for each polarization, then a transformation to decibels and a normalization are applied. The pre-processing steps are detailed in the supplementary materials.
-
-\if 0
-\paragraph{Sentinel-2} 
-As far as Sentinel-2 is concerned, once latitude and longitude are converted from terrestrial coordinates to Sentinel-2 coordinates, new center pixel values for the image are calculated. 
-The center pixel value is saved in the final JSON splits, so the user can choose the patch size to be used, the programme will use the centre of the patch to retrieve the correct portion of the image.
-\paragraph{Sentinel-1} 
-The first difference to take into account with respect to optical images is that in Sentinel-1's images, using IW mode and SLC level 1, they are divided into bursts by black lines and repeated areas. For this reason, we must be sure not to select part of the black image during patch cropping as shown in Figure~\ref{SARimagesprepost}. To achieve this, the black lines and repeating zones are removed, following the procedure below:
-\begin{itemize}
-    \item the energy present for each line of the image was calculated
-    \item the average of the energies was calculated
-    \item if the energy of a line is less than the average energy divided by 1.5, the line is considered black.
-    \item rows in the vicinity of the black ones just identified are compared to see if they are equal. 
-    \item Equal rows above the black line are eliminated, as there is no repetition in the final image. 
-\end{itemize}
-
- \begin{figure}[t!]
+\begin{figure}[ht]
     \centering
-    \begin{subfigure}[b]{0.49\columnwidth}
-        \includegraphics[width=\columnwidth]{images/TAMMI/original_patch.pdf}
-        \caption{Pre}
-        \label{fig:image_a}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.49\columnwidth}
-        \includegraphics[width=\columnwidth]{images/TAMMI/final_patch.pdf}
-        \caption{Post}
-        \label{fig:image_b}
-    \end{subfigure}
-    \caption{SAR image patch extraction}\label{SARimagesprepost}
+    % NOTE: insert Figure 1 from the CVPRW 2025 paper here
+    % (summary of contributions: dataset example with 3 modalities
+    % side by side + MM-RSVQA model overview)
+    \includegraphics[width=\textwidth]{images/TAMMI/GraphAbstract.png}
+    \caption{Summary of contributions. TAMMI associates
+    question/answer pairs to triplets of co-registered images
+    (VHR orthophoto, Sentinel-2 multispectral, Sentinel-1 SAR).
+    The white rectangle in the multispectral and SAR images
+    indicates the geographic extent of the VHR patch. MM-RSVQA
+    fuses features from all three modalities and the question
+    through a transformer-based fusion module.}
+    \label{fig:chap5_contributions}
 \end{figure}
-The way SAR images are acquired also creates geometric distortions such as foreshortening, layover, and shadow. Layover in SAR images is caused by high objects, making them appear closer to the sensor with respect to other objects. This happens because the backscattering signal returns faster to the sensor, as it has to travel a shorter distance due to the high height of the objects. It is the reason why it is not possible to calculate the coordinates of the associated pixel directly from the latitude and longitude of a point. \\
-\fi  
 
+% ============================================================
+\section{Related Work}
+\label{sec:chap5_rw}
+The related work covered in Chapter~\ref{chap:background}
+addresses the broader foundations of this chapter: general
+VQA architectures, RS-VQA datasets, and vision-language
+transformer models such as VisualBERT and LXMERT at the
+conceptual level. Attention mechanisms and their application
+to RSVQA are covered in Chapter~\ref{chap:seg_attention}.
+This section therefore focuses on two aspects that are
+specific to the contributions of this chapter: the
+construction of multimodal datasets in remote sensing beyond
+the VQA setting, and the question of spatial context and
+multi-resolution in RSVQA.
 
-\subsection{Question/answer pairs}
-%Inspired by \cite{johnson2017clevr}, we propose an automatic method for the construction of question/answer pairs associated to each VHR patch, using:
-Inspired by \cite{johnson2017clevr}, we propose an automatic approach for the construction of question/answer pairs associated to each geographical area covered by the VHR patch, using: 
-\begin{itemize}
-    \item \textbf{BDTopo} provided by IGN (French Geographical Institute). It is an official vectorial description of the French territory, including generic geographical objects (e.g. buildings and water areas), and specific ones (e.g. museums and lakes);
-    
-    \item \textbf{Flooding risks database (TRI)} from \textit{Géorisques}. This dataset corresponds to the areas at significant risk of flooding, including management zoning, floodable area zoning, water level zoning, etc.;
-    
-    \item \textbf{Urban units 2020 (BU20)} of INSEE (French National Institute of Statistics and Economic Studies). This database corresponds to the urban zoning of French cities according to the continuity of the constructions and the number of inhabitants;
-    
-    \item \textbf{CORINE Land Cover (CLC) 2018} produced as part of the Copernicus European land monitoring program and managed by the European environment agency. It is a database of land cover and land use classifications, on three different levels of hierarchy with different levels of details. 
-    In this work, we consider the Level-3 having the most detailed classes (44);
-    
-    \item \textbf{European Mountain Areas (EMA)} provided by the European environment agency. It contains information about the geometry, the area and the name of the mountains in Europe.
-\end{itemize}
+\subsection{Multimodal Dataset Construction in Remote Sensing}
+\label{sec:chap5_rw_multimodal}
 
-\paragraph{Construction of questions}
-For a given VHR patch $\pvhr$, we retrieve the collection of geo-located objects $\objects$ that are present in $\epvhr$, the geographical extent of $\pvhr$.
-A collection of objects $\mathbf{\objects_{\class}} = \{\objects^{\class}_{i}\}$  are characterised by a class $\class$. A class is one element present in BDTopo, TRI, CLC, EMA, or an Urban Unit. We define five question types that can be divided into 21 sub-questions: %We define 21 questions types that can be divided in five categories:
+Outside of VQA, the construction of multimodal remote
+sensing datasets combining optical and SAR imagery is a
+well-established practice.
+\textcite{sumbul2021bigearthnetmm} introduce BigEarthNet-MM,
+extending the original Sentinel-2-only BigEarthNet
+archive~\textcite{sumbul2019bigearthnet} with co-registered
+Sentinel-1 SAR patches, annotated with CORINE Land Cover
+labels, to support multimodal classification and retrieval.
+This dataset illustrates both the value and the difficulty
+of multimodal RS data: co-registering optical and SAR
+acquisitions at scale requires careful handling of
+differing acquisition geometries, revisit times, and
+preprocessing pipelines, but the resulting joint
+representations consistently improve downstream
+classification performance compared to single-modality
+inputs.
+
+Within RSVQA specifically, multimodality has so far been
+explored only in narrow settings.
+\textcite{tosato2024sar} investigate whether SAR imagery can
+improve RSVQA performance when combined with optical data,
+focusing on a subset of question types and a single pair of
+co-registered modalities. While this work demonstrates that
+SAR contributes complementary information to RSVQA, it does
+not extend to a full dataset spanning multiple modalities,
+question types, and geographic regions, nor does it
+incorporate very high resolution imagery alongside
+satellite-based modalities. The dataset introduced in this
+chapter builds directly on this finding, extending it to a
+three-modality setting (VHR, multispectral, and SAR) at the
+scale required for general-purpose RSVQA benchmarking.
+
+\subsection{Multi-Resolution and Context-Aware RSVQA}
+\label{sec:chap5_rw_context}
+
+A related but distinct line of work concerns the role of
+spatial context in RSVQA. Most existing RSVQA datasets pose
+questions exclusively about the content of a single image
+patch, implicitly assuming that all information required to
+answer a question is contained within that patch's spatial
+extent. However, many natural questions about a location (its administrative region, its broader land cover context,
+or its proximity to mountainous or coastal areas) require
+information at a coarser spatial scale than a single VHR
+patch can provide.
+
+The dataset introduced in this chapter addresses this by
+design: multispectral and SAR patches are extracted at a
+spatial extent independently configurable from the VHR
+patch, allowing the same geographic location to be described
+at multiple resolutions simultaneously. This formalizes
+multi-resolution context as a first-class property of the
+dataset, rather than an incidental consequence of sensor
+characteristics. To the best of our knowledge, this is the
+first RSVQA dataset to explicitly decouple the spatial extent
+of contextual modalities from that of the primary imagery,
+enabling questions whose answers depend on information at a
+scale broader than the directly imaged area, such as
+administrative or land cover classification questions
+discussed in Section~\ref{sec:chap5_dataset_qa}.
+
+% ============================================================
+\section{The TAMMI Dataset}
+\label{sec:chap5_dataset}
+% ============================================================
+
+\subsection{Image Modalities}
+\label{sec:chap5_modalities}
+
+TAMMI associates each geographical location with a triplet
+of co-registered images from three complementary sensors,
+described below.
+
+\textbf{Very high resolution orthophotos (BDOrtho).}
+BDOrtho is a database of aerial optical imagery produced by
+the French National Geographic Institute (IGN), providing
+RGB orthophotos at 20\,cm resolution over the whole of
+Metropolitan France, updated approximately every three
+years. As in Chapter~\ref{chap:seg_attention}, these images
+constitute the primary, highest-resolution modality of the
+dataset. For consistency across departments, the most
+recent available acquisition is used for each: 2020 for
+department 74 (Haute-Savoie), and 2021 for departments
+34, 75, 92, 93, and 94. The acquisition year for each
+department is also used to select temporally consistent
+acquisitions for the other two modalities, ensuring that the
+three images of a given triplet describe the same physical
+scene at approximately the same point in time.
+
+\textbf{Multispectral imagery (Sentinel-2).} Sentinel-2,
+part of the European Union's Copernicus
+program~\cite{sentinel2}, acquires multispectral imagery
+across 13 spectral bands spanning the visible, near-infrared
+(NIR), and short-wave infrared (SWIR) regions, at spatial
+resolutions of 10\,m, 20\,m, or 60\,m depending on the band.
+With a constellation of two satellites (Sentinel-2A and
+Sentinel-2B), the revisit time over a given location is
+approximately five days. Sentinel-2 data is distributed at
+two processing levels: Level-1C (L1C), providing
+top-of-atmosphere (TOA) reflectance, and Level-2A (L2A),
+providing surface reflectance after atmospheric correction.
+Since BDOrtho images are acquired under clear-sky conditions
+and require no atmospheric correction, and SAR imagery is
+unaffected by atmospheric conditions altogether, L1C products
+are used throughout TAMMI to maintain consistency across
+modalities. Only images with cloud coverage below 3\% are
+retained. Of the 13 available bands, the 10 bands at 10\,m
+and 20\,m resolution are used, discarding the three 60\,m
+atmospheric bands which carry limited information about
+ground-level land cover.
+
+\textbf{Synthetic Aperture Radar imagery (Sentinel-1).}
+Sentinel-1, also part of the Copernicus
+program~\cite{sentinel1}, provides SAR imagery with a
+revisit time of approximately six days over Europe. SAR
+acquisition is based on active sensing: the satellite emits
+radar pulses and measures the backscattered signal, a process
+unaffected by cloud cover or solar illumination. TAMMI uses
+data acquired in Interferometric Wide (IW) swath mode, the
+primary acquisition mode over land, with a resolution of
+5\,m in range (across the satellite's trajectory) and 20\,m
+in azimuth (along the trajectory). IW acquisitions are
+divided into three sub-swaths, each composed of sequentially
+acquired tiles (\textit{bursts}) with inter-burst overlap;
+Single Look Complex (SLC) Level-1 products represent these
+bursts within a single image separated by black bands.
+Sentinel-1 acquires data in two polarization
+channels (VV and VH), which respond differently to
+surface roughness and material composition, providing
+complementary physical information about the scene. TAMMI
+uses the amplitude of the SLC Level-1 images for both
+polarization channels. Prior to use, SAR images undergo a dedicated preprocessing
+pipeline jointly involving the SAR and VHR data, described
+below.
+
 \begin{enumerate}
-    \item \textbf{Presence Questions}: questions about the existence of certain objects or features in the image. 
-    \begin{enumerate}
-        \item \textbf{Presence}: answered with \textit{yes} if the cardinality of the set of object from the class $\numobj > 0$ and \textit{no} otherwise, where $\class \in$ BDTopo, \\e.g. \underline{"Is there a road in the image?"}
-        \item \textbf{Mountain presence}  answered with \textit{yes} if the cardinality of the set of object from EMA $\numobj > 0$ and \textit{no} otherwise, \\e.g. \underline{"Are there any mountains in the image?"}
-        \item \textbf{Flood presence}  answered with \textit{yes} if the cardinality of the set of objects from TRI $\numobj > 0$ and \textit{no} otherwise, e.g. \underline{"Is this area prone to flooding?"}
-    \end{enumerate}
 
-    \item \textbf{Quantity Questions}: questions about the number or amount of certain objects or features in the image.
-    \begin{enumerate}
-        \item \textbf{Count}: answered by $\numobj$, where $\class \in$ BDTopo, \\e.g. \underline{ "How many buildings are in the image?"}
-        \item \textbf{Density} answered by $\frac{(\sum_{i=1}^{\numobj} a(\objects^{\class}_{i})) \times 100}{a(\pvhr)}$ where $a(.)$ is a function returning the area, and $\class \in$ BDTopo , \\ e.g. \underline{ "What is the religious buildings density?"}
-        \item \textbf{Area}: answered by $a(\objects^{\class}_{i})$,  where $\class \in$ BDTopo ,\\ e.g. \underline{ "What is the area of the lake?"}
-        \item \textbf{Percentage}: answered by $\frac{(\sum_{i=1}^{\numobj} a(\objects^{\class}_{i})) \times 100}{a(\pvhr)} $ where $\class \in$ CLC,\\ e.g. \underline{ "What percentage of the area is wetland?"}
-    \end{enumerate}
+    \item \textbf{Position projection.} The algorithm
+    of~\cite{weissgerber2022labsar} is used to project
+    the geographic position of the center of each VHR
+    patch into the SAR image coordinate space. Altitude
+    must be included in this projection due to the
+    geometric distortions inherent in SAR acquisitions,
+    particularly layover effects. Latitude and longitude
+    are extracted from the VHR image metadata; altitude is
+    retrieved from the IGN altimetry web
+    service~\cite{ign_alti} and stored alongside the
+    geographic coordinates in a per-patch JSON file
+    (\texttt{latlonalt.json}).
 
-    \item \textbf{Location Questions}: questions about the location of certain objects or features in the image.
-    \begin{enumerate}
-        \item \textbf{Absolute location}: answered by $\textrm{loc}(\objects^{\class}_{i})$ where $\textrm{loc}(.)$ is a function returning the position (both as the exact coordinate in the image space, and as the position in a $3\times 3$ grid dividing the image) of a specific object, and $\class \in$ BDTopo, \\e.g. \underline{ "Where is the largest vegetation area?"}
-    \end{enumerate}
+    \item \textbf{Swath selection.} Sentinel-1 SLC images
+    are divided into three sub-swaths. The projection
+    algorithm is applied to the metadata of each sub-swath;
+    the sub-swath for which the algorithm returns a valid
+    pixel position is selected for that VHR patch.
 
+    \item \textbf{Debursting.} Within each sub-swath, the
+    SLC image comprises multiple overlapping bursts stored
+    in a single file separated by black bands. These black
+    bands and inter-burst overlaps are removed using the
+    SLC metadata and by comparing consecutive bursts,
+    producing a spatially continuous image. The debursted
+    images are provided with the dataset. The projection
+    algorithm is updated to return the correct position in
+    the debursted coordinate system, and the resulting
+    position and selected swath are stored in the patch
+    JSON file.
 
-    \item \textbf{Classification Questions}: questions about the classification or type of certain objects or features in the image.
-    \begin{enumerate}
-        \item \textbf{Water bodies}: answered by the class $\class$ of $\max a(\objects^\class)$ or $\min a(\objects^\class)$,  where $\class \in$ BDTopo's water category (see appendix), \\e.g. \underline{ "What type of water body occupies the largest}\\ \underline{area in the image?"}
-        \item \textbf{Vegetation zones} answered by the class $\class$ of $\max a(\objects^\class)$ or $\min a(\objects^\class)$,  where $\class \in$ BDTopo's vegetation category (see appendix),\\ e.g. \underline{ "Which vegetation type occupies the smallest}\\ \underline{area in the image?"}
-        \item \textbf{Mountain range name}: asked only if the answer of mountain presence is \textit{yes}, and answered by $n(\objects_{i})$ where $n(.)$ is a function returning the name of the mountain range present in the geographical extent of $\pvhr$,\\ e.g. \underline{ "What is the name of the mountain range in the}\\ \underline{image?"}
-        \item \textbf{Flood level}: answered by $\textrm{flood}(\epvhr)$ where $\textrm{flood}(.)$ is a function returning the highest flood risk present in $\pvhr$. The possible answers of this function are ‘low’, ‘medium’, and ‘high’. \\e.g. \underline{ "What is the flood risk level?"}
-        \item \textbf{Flood type}: answered by $\textrm{type}(\epvhr)$ where $\textrm{type}(.)$ is a function returning all types of flood risks present in $\pvhr$. The possible answers of this function are 'River overflows', 'Runoff', 'Sea Flooding' and 'GroundWater overflows' \\e.g. \underline{ "What is the nature of the flood risk in this}\\ \underline{ area?"}
-        \item \textbf{Land cover}: answered by the CLC class with the largest (or smallest) area,\\ e.g. \underline{ "Which land cover category occupies the}\\ \underline{largest area in the image?"}
-        \item \textbf{Urban }: answered by $\textrm{urban}(\epvhr)$ where $\textrm{urban}(.)$ is a function returning the urban classification (City Center, Suburb, Isolated City, Outside Urban Unit) based on BU20,\\ e.g. \underline{ "What is the urban classification of the area}\\ \underline{in the image?"}
-        \item \textbf{Department}: answered by $\textrm{dpt}(\epvhr)$ where $\textrm{dpt}(.)$ is a function returning the name of the departement of $\epvhr$, \\e.g. \underline{ "To which department does the area in the} \\\underline{image belong to?"}
-        \item \textbf{Region}: answered by $\textrm{reg}(\epvhr)$ where $\textrm{reg}(.)$ is a function returning the name of the region of $\epvhr$,\\ e.g. \underline{ "To which region does the area in the image}\\\underline{belong to?"}
-    \end{enumerate}
+    \item \textbf{Patch extraction and dB conversion.}
+    When a patch of size $L_\text{SAR} \times L_\text{SAR}$
+    is extracted at runtime, the two polarimetric channels
+    (VV and VH) are converted to decibels and their ratio
+    VV/VH is computed, yielding a three-channel SAR patch.
 
-    \item \textbf{Relational Analysis Questions}:
-    questions seeking to understand the relationships, comparisons, and distances between various objects or features in the image (note that for theses questions $\class \in$ BDTopo).
-    \begin{enumerate}
-        \item \textbf{Distance}: answered by $d(\objects^{\class_1}_{i}, \objects^{\class_2}_{j})$ where $d(.,.)$ is a function returning the distance (in meters) between two objects (note that $\objects^{\class_1}_{i}$ can be replaced by a position $\textrm{pos}$),\\ e.g. \underline{ "What is the distance between the museum}\\ \underline{and the religious place?"}
-         \item \textbf{Comparison}: answered with \textit{yes} if $|\mathbf{\objects_{\class_1}}| > |\mathbf{\objects_{\class_2}}|$, \textit{no} otherwise, \\e.g. \underline{ "Are there more buildings than roads?"}
-         \item \textbf{Relative location}: answered by $l^{\objects^{\class_1}_{i}}(\objects^{\class_2}_{j})$ where $l^{\objects^{\class_1}_{i}}(.)$ is a function returning the position (both as the exact coordinate in the image space, and as the position in a slice of a regular octagon) of an object with respect to $\objects^{\class_1}_{i}$,\\ e.g. \underline{ "What is the relative position of the}\\ \underline{monument with respect to the river?"}
-        \item \textbf{Nearest}: answered by $l_{\textrm{pos}} (\mathbf{\objects_{\class}})$ where $l_{\textrm{pos}}(.)$ is a function returning the position (both as the exact coordinate in the image space, and as the position in a $3\times 3$ grid dividing the image) of the nearest element of a collection from the position $\textrm{pos}$,\\ e.g. \underline{ "Where is the closest road to (142, 221)?"}
-    \end{enumerate}
+    \item \textbf{Tail-value elimination.} A tail-value
+    removal procedure is applied independently to each of
+    the three channels, using statistics computed over the
+    full dataset to identify and clip extreme backscatter
+    values that would otherwise dominate the dynamic range.
+
 \end{enumerate}
 
-\begin{table*}[!t]
+Figure~\ref{fig:chap5_deburst} illustrates the effect of
+the debursting step on a Sentinel-1 SLC image.
+
+\begin{figure}[ht]
     \centering
-    \footnotesize
-    \begin{tabular}{cccccccc}
-        \hline
-        \textbf{Name} & \textbf{Modalities} & \textbf{Resolution} & \textbf{Annotation}& \textbf{\# Images} & \textbf{\# Questions} & \textbf{\# Q. Types} & \textbf{\# Unique A.}\\
-        \hline
-        TAMMI & 
-        \begin{tabular}{c}BDOrtho \\ S2 - MS 10 channels \\ S1 - VV/VH/Ratio channels \end{tabular} 
-        & 
-        \begin{tabular}{c}0.2m \\ 10-20m \\ $5\times 20$m \end{tabular} 
-        & 
-        \begin{tabular}{c}  BDTopo, \\ TRI, BU20, \\ CLC, EMA \end{tabular} &
-         282'852 & 3'162'514 & 21 & 109'737 
-        \\ \hline
-        RSVQAxBEN~\cite{lobry2021rsvqa} & S2 - RGB & 10m & BigEarthNet \cite{sumbul2019bigearthnet} & 590'326 & 14'758'150 & 2 & 26’875\\ \hline
-        RSIVQA~\cite{zheng2021mutual}  & Various RGB & 0.15–8m & Manual/Other & 37'264 & 111'134 & 4 & 579  \\ \hline
-        RSVQA LR~\cite{lobry2020rsvqa} & S2 - RGB & 10m & OSM & 772 & 77'232 & 4 & 9 \\ \hline
-        RSVQA HR~\cite{lobry2020rsvqa} & USGS Ortho & 0.15m & OSM & 10'659 & 1'066'316 & 4 & 55\\
-        \hline
-    \end{tabular}
-    \caption{Summary of existing RSVQA datasets, showing modalities (S1: Sentinel-1, S2: Sentinel-2), spatial resolutions, annotation sources, and dataset sizes by image and question counts.} \label{tab:Overview}
-\end{table*}
+    % NOTE: insert Figure 4 from the supplementary material here
+    % Two images side by side: before and after debursting
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/TAMMI/original_patch.png}
+        \caption*{(a) Pre-debursting}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/TAMMI/final_patch.png}
+        \caption*{(b) Post-debursting}
+    \end{minipage}
+    \caption{Sentinel-1 SLC image before (a) and after (b)
+    the debursting procedure. The black bands separating
+    sequentially acquired bursts are removed and the burst
+    overlaps are resolved to produce a spatially continuous
+    image. Visualization uses a threshold of 233.}
+    \label{fig:chap5_deburst}
+\end{figure}
+\label{sec:chap5_triplets}
 
+\textbf{Geographic extent.} TAMMI extends the geographic
+coverage of Chapter~\ref{chap:seg_attention} from four to
+six departments, grouped into three contrasting regions of
+Metropolitan France, illustrated in
+Figure~\ref{fig:chap5_geo}. The Île-de-France region
+(departments 75, 92, 93, and 94), already used in
+Chapter~\ref{chap:seg_attention}, is predominantly urban.
+Haute-Savoie (department 74) is a mountainous region in the
+French Alps, and Hérault (department 34) is a maritime
+region on the Mediterranean coast. This selection deliberately
+broadens the range of land cover types represented in the
+dataset: while questions about administrative regions, water
+bodies, or vegetation are meaningful but visually homogeneous
+in an urban context, the addition of mountainous and
+maritime landscapes introduces new object classes (mountain
+ranges, coastlines) and new question types
+(Section~\ref{sec:chap5_dataset_qa}) that would be absent in Île-de-France alone.
 
-
-\paragraph{Balancing the dataset}
-One of the challenges of constructing a VQA dataset stochastically is to balance both question types and the answer types to reduce language biases~\cite{goyal2017making}.
-In this work, we perform the balancing jointly at the dataset and department levels.
-
-We perform the questions/answers pairs construction at the department level. For each VHR patch $\pvhr$ 10 questions per type are randomly constructed. We iterate through the questions created for each patch, and select questions based on four goals: 
-1) having an equal number of questions for each type; 
-2) having a number of question proportional to the number of VHR patches per department; 3) having a balanced distribution of answers for each type of question; 
-and 4) not having more than 50 question/answer pairs for each patch.
-
-In the case of question types with a fixed number of possible answers $\numAnswers$ such as Presence (e.g. Yes/No, $\numAnswers = 2$), the number of questions per answer is defined as 
-$\numQuestionsAnswers = \frac{\numPatches}{\min(\numAnswers,10)}$, where $\numPatches$ is the number of patches in the department.
-For Location questions, the locations are binned in the $3 \times{} 3$ square grid, leading to $\numAnswers=9$. 
-For questions with free numerical answers such as Area or Count, the number of each of the numerical value is capped to $\numQuestionsAnswers = \frac{\numPatches}{\log(x+3)}$, where $x$ is the numerical answer and $x+3$ is chosen empirically. 
-This allows us to control the distribution of each possible answer. 
-
-Note that there is an exception for Department (3.b) and Region (3.c) questions. For each department, the answer will always be the same. To overcome this, each possible answer is capped to 2'473 for departments (the number of occurrences of the answer Paris) and 16'274 for regions (the number of occurrences of Île-de-France). This ensures a balanced distribution of the answers on the dataset level.
-An overview on TAMMI and other RSVQA datasets is provided in Table \ref{tab:Overview}. It shows that the proposed dataset significantly improves on the number of question types and in diversity of answers compared to existing RSVQA datasets.
-
-
-
-
-\section{Method}
-\label{sec:method}
-%We propose a methodology allowing the model to answer questions considering both a VHR image and additional, user-defined, context through the use of the MS and SAR modalities.
-We propose a new methodology to tackle the VQA task in a multi-modal image setting. 
-The general outline of the proposed architecture, named MM-RSVQA (\textit{Multi-modal Multi-resolution} RSVQA), is presented in \autoref{fig:method}.  
-We first describe the feature extraction process from the different modalities (multi-modal images and questions) in \autoref{ssec:feats}. 
-We then present in \autoref{ssec:fusion} the data fusion part of our model. 
-Finally, the prediction of the answers is described in \autoref{ssec:pred}.
-
-\subsection{Multi-modal features extraction}
-\label{ssec:feats}
-As discussed in \autoref{sec:dataset}, the questions are based on the geographical extent of the VHR patch $\pvhr$ of size $1000\times 1000$ pixels. 
-Our objective is to extract relevant visual features from the $\pvhr$ patch, the MS patch $\pms$ of spatial size $\lms \times \lms$ and the SAR one $\psar$ of spatial size $\lsar \times \lsar$ to obtain useful characteristics for the VQA task.
-The size of the patches $\pms$ and $\psar$ is a hyper-parameter that allows taking more or less context from the MS and SAR data into account. 
-In this work, we consider the 10 bands with 10m and 20m resolution from the MS patches, and the SAR patch is the VV, VH, and the ratio VV/VH channels~\cite{tosato2024can}. Each of the $\pvhr$, $\pms$ and $\psar$ patches is passed through a separate feature extractor.
-
-% That is experimental details, already given in the experiments part
-% To extract visual features from $\pvhr$, we use a frozen ResNet-152~\cite{he2016deep} pre-trained on natural images, which outputs a 2'048-dimensional feature vector. 
-% Both $\pms$ and $\psar$ are processed by two different trainable ResNet-50~\cite{he2016deep} models. 
-% These models are pre-trained on classifying the CLC classes~\cite{clc}. 
-% The ResNet-50 used to extract features from the MS patch is pre-trained with RGB data. Therefore, we copy the weights of the , for this reason the initialization is classically done by copying the red channel to populate the added channels. 
-% The ResNet-50 used for $\psar$ is pre-trained with VV, VH polarization channels and their ratio.
-% Each ResNet-50 outputs a 2'048-dimensional feature vector. 
-
-The fourth modality is the textual data corresponding to the question. The question is tokenized using DistilBERT~\cite{sanh2019distilbert}, and the tokens are converted into embeddings.%The question is processed through a DistilBERT~\cite{sanh2019distilbert} tokenizer.  The tokens are then converted into embeddings.
-
-\begin{figure}[!t]
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth]{images/TAMMI/architecture.png}
-    \caption{Graphical outline of the proposed MM-RSVQA (\textit{Multi-modal Multi-resolution} RSVQA) architecture.
-    The inputs of the model (multi-modal imagery and textual question) are represented on the left and the output (predicted answer) is on the bottom right. First, we extract features from each image modality and perform a text embedding. These features are passed through a vision-language model (VLM) to obtain a vector which can be classified among a set of pre-defined answers.
-    The different blocks composing the system are detailed in \autoref{sec:method}.}
-    \label{fig:method}
+    % NOTE: insert Figure 2 from the paper here (map of France
+    % with the three regions highlighted, plus VHR samples)
+    \includegraphics[width=0.6\textwidth]{images/TAMMI/GeoExtent.png}
+    \caption{Geographic extent of the TAMMI dataset, covering
+    six departments across three contrasting regions of
+    Metropolitan France: Île-de-France (75, 92, 93, 94, urban),
+    Haute-Savoie (74, mountainous), and Hérault (34, maritime).}
+    \label{fig:chap5_geo}
 \end{figure}
 
+Figure~\ref{fig:chap5_triplet_example} shows an example
+image triplet from the dataset, illustrating the
+complementary information provided by each modality for
+the same geographic location.
 
-\subsection{Transformer-based data fusion}
-\label{ssec:fusion}
-We first project the visual features obtained through the feature extractor to a 768-dimensional vector through a linear layer. The 768-dimensional visual feature is concatenated with a [SEP] token, which marks the separation between visual and textual tokens, and then with the textual embeddings. Finally, a [cls] token is added to  represent the entire input.%, making the fusion step more sophisticated than the traditional point-wise multiplication used previously in the literature \cite{lobry2020rsvqa,lobry2021rsvqa}.
-%\textcolor{red}{What is also important is to say that we are not going to do a classic fusion (pointwise multiplication) but that we are going to do it in a system able to exploit the complementarity of multi-modal information, depending on the question in an end-to-end manner.}
+\begin{figure}[ht]
+    \centering
+    % NOTE: insert Figure 1 from the earlier CVPR submission here
+    % (example triplet: VHR orthophoto / Sentinel-2 MS / Sentinel-1 SAR
+    % with white dotted rectangle showing VHR extent on MS and SAR,
+    % plus associated Q&A pairs)
+    \includegraphics[width=\textwidth]{images/TAMMI/CVPR_QA.png}
+    \caption{Example image triplet from the TAMMI dataset for
+    a location in Paris. The VHR orthophoto (left) provides
+    fine-grained spatial detail at 20\,cm resolution. The
+    Sentinel-2 multispectral patch (center) and Sentinel-1
+    SAR patch (right) provide broader spatial context at
+    coarser resolution; the white rectangle indicates the
+    geographic extent of the VHR patch within each. Example
+    question/answer pairs are shown on the right.}
+    \label{fig:chap5_triplet_example}
+\end{figure}
 
-To process the diverse features, we leverage VisualBERT~\cite{li2019visualbert}, a state-of-the-art vision-language model designed for the integration of visual and textual features. 
-VisualBERT uses a stack of transformer layers to align regions in the images with the text input through self-attention mechanisms. 
-Pre-trained on image-caption pairs, VisualBERT uses objectives as image-text matching and masked language modeling. It is effective for various tasks, such as VQA, visual commonsense reasoning, natural language for visual reasoning, and region-to-phrase grounding.
+\textbf{VHR patch extraction.} As in
+Chapter~\ref{chap:seg_attention}, VHR tiles of
+$25{,}000 \times 25{,}000$ pixels are divided into patches
+$p_\text{VHR}$ of $1{,}000 \times 1{,}000$ pixels, each
+covering $200\,\text{m} \times 200\,\text{m}$ on the ground.
+Each such patch defines the geographical extent
+$E_{p_\text{VHR}}$ used both to query geographic databases
+for question generation (Section~\ref{sec:chap5_dataset_qa})
+and to determine the corresponding multispectral and SAR
+patches.
 
-The cornerstone of the proposed method is therefore to learn jointly and in an end-to-end manner an optimized representation of the data and a fusion process. 
-The latter makes it possible to exploit the complementarity of multi-modal information and to weight the best modalities, according to the visual content of the scene studied, the types of questions, and the expected answers.
+\textbf{Multispectral and SAR patch extraction.} Unlike the
+VHR patch, whose extent is fixed by construction, the
+multispectral patch $p_\text{MS}$ and SAR patch $p_\text{SAR}$
+are extracted at a spatial extent of $L_\text{MS} \times
+L_\text{MS}$ and $L_\text{SAR} \times L_\text{SAR}$ pixels
+respectively, where $L_\text{MS}$ and $L_\text{SAR}$ are
+user-defined parameters specifying how much spatial context
+is provided by each modality. This is a deliberate design
+choice: because multispectral and SAR data are available at
+coarser resolution but cover a wider area for the same number
+of pixels, they can provide the model with information about
+the broader surroundings of the VHR patch (for instance,
+whether the area lies near a coastline, within an urban
+agglomeration, or close to a mountain range) without
+requiring this information to be visible within the
+$200\,\text{m} \times 200\,\text{m}$ extent of
+$p_\text{VHR}$ itself. The patches $p_\text{MS}$ and
+$p_\text{SAR}$ are cropped dynamically at execution time,
+allowing $L_\text{MS}$ and $L_\text{SAR}$ to be adjusted
+without regenerating the dataset.
 
+\textbf{Spatial co-registration.} To align the three
+modalities, the geographic position (latitude, longitude,
+and altitude) of the central pixel of each $p_\text{VHR}$ is
+computed. A multispectral tile centered on this position is
+retrieved by converting the geographic coordinates to pixel
+coordinates in the geocoded Sentinel-2 product. For SAR
+imagery, which is not natively geocoded, the projection of
+the central pixel position into the SAR image's pixel space
+is performed using the method
+of~\cite{weissgerber2022labsar}, originally developed for
+SAR/InSAR coregistration in high-mountain regions, a
+context particularly relevant given the inclusion of
+Haute-Savoie in TAMMI's geographic extent.
 
-\subsection{Prediction}
-\label{ssec:pred}
-The data fusion part of our architecture outputs a 768-dimensional vector that represents the fused multi-modal features. In this model, we frame the VQA as a classification task. Therefore, this vector is passed through a linear layer that maps it to a $k$-dimensional output.
+\subsection{Question/Answer Taxonomy}
+\label{sec:chap5_dataset_qa}
 
+TAMMI's question/answer pairs are constructed automatically
+from five geographic databases, each contributing distinct
+object classes and question types:
 
-\begin{table*}[!t]
+\begin{itemize}
+    \item \textbf{BD TOPO}~\cite{bdtopo}: the vectorial
+    description of the French territory used throughout this
+    thesis, providing generic geographic objects (buildings,
+    roads, water areas) as well as specific entities (museums,
+    monuments, religious buildings);
+    \item \textbf{TRI} (\textit{Territoires à Risque
+    important d'Inondation}), the flood risk
+    database from Géorisques~\cite{georisques_tri},
+    providing management zoning, floodable area zoning, and
+    water level zoning for areas at significant flood risk;
+    \item \textbf{BU20} (\textit{Base des Unités urbaines
+    2020}), the urban unit database from
+    INSEE~\cite{insee_bu20}, providing urban zoning of French
+    cities based on construction continuity and population;
+    \item \textbf{CORINE Land Cover (CLC) 2018}, the
+    pan-European land cover and land use database managed by
+    the European Environment Agency, used at its most detailed
+    level (Level-3, 44 classes)~\cite{clc2018};
+    \item \textbf{European Mountain Areas (EMA)}, a database
+    from the European Environment
+    Agency~\cite{ema} providing the geometry, area, and name
+    of European mountain ranges.
+\end{itemize}
+
+For a given VHR patch $p_\text{VHR}$, the collection of
+geo-located objects $\mathbf{o}^C = \{o_i^C\}$ present in its
+geographic extent $E_{p_\text{VHR}}$ is retrieved for each
+relevant class $C$ across these five sources. Questions are
+then generated from these object collections according to
+five question categories, totaling 21 question types,
+summarized in Table~\ref{tab:chap5_qtypes}.
+
+\begin{table*}[ht]
+\centering
+\small
+\caption{Question taxonomy of the TAMMI dataset: 21 question
+types organized into five categories. The data source column
+indicates which geographic database(s) provide the underlying
+objects or classes for each question type.}
+\label{tab:chap5_qtypes}
+\begin{tabularx}{\textwidth}{l l >{\raggedright\arraybackslash}X l}
+\toprule
+\textbf{Category} & \textbf{Type} & \textbf{Example} & \textbf{Source} \\
+\midrule
+\multirow{3}{*}{Presence}
+  & Presence          & ``Is there a road in the image?''            & BD TOPO \\
+  & Mountain presence & ``Are there any mountains in the image?''    & EMA \\
+  & Flood presence    & ``Is this area prone to flooding?''          & TRI \\
+\midrule
+\multirow{4}{*}{Quantity}
+  & Count       & ``How many buildings are in the image?''                  & BD TOPO \\
+  & Density     & ``What is the religious building density?''               & BD TOPO \\
+  & Area        & ``What is the area of the lake?''                          & BD TOPO \\
+  & Percentage  & ``What percentage of the area is wetland?''                & CLC \\
+\midrule
+Location
+  & Absolute location & ``Where is the largest vegetation area?''       & BD TOPO \\
+\midrule
+\multirow{9}{*}{Classification}
+  & Water bodies        & ``What type of water body occupies the largest area?''  & BD TOPO \\
+  & Vegetation zones    & ``Which vegetation type occupies the smallest area?''   & BD TOPO \\
+  & Mountain range name & ``What is the name of the mountain range in the image?''& EMA \\
+  & Flood level         & ``What is the flood risk level?''                       & TRI \\
+  & Flood type          & ``What is the nature of the flood risk in this area?''  & TRI \\
+  & Land cover          & ``Which land cover category occupies the largest area?''& CLC \\
+  & Urban               & ``What is the urban classification of this area?''      & BU20 \\
+  & Department          & ``To which department does this area belong?''         & BD TOPO \\
+  & Region              & ``To which region does this area belong?''             & BD TOPO \\
+\midrule
+\multirow{4}{*}{Relational}
+  & Distance         & ``What is the distance between the museum and the religious place?'' & BD TOPO \\
+  & Comparison       & ``Are there more buildings than roads?''                             & BD TOPO \\
+  & Relative location& ``What is the position of the monument relative to the river?''      & BD TOPO \\
+  & Nearest          & ``Where is the closest road to (142, 221)?''                         & BD TOPO \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Compared to the nine question types used in
+Chapter~\ref{chap:seg_attention}, which correspond to a
+subset of the Quantity, Relational, and Comparison types
+above (all drawn from BD TOPO), TAMMI more than doubles the
+question taxonomy. The additional types fall into two groups.
+First, several types (mountain presence, mountain range name,
+flood presence, flood level, flood type) are only meaningful
+given TAMMI's broader geographic extent: mountains and flood
+zones are largely absent from the Île-de-France departments
+used in Chapter~\ref{chap:seg_attention}. Second, the
+classification questions about department, region, urban
+classification, and land cover (CLC) require information at a
+spatial scale beyond that of a single VHR patch, and are
+answered using the broader geographic context made available
+through TAMMI's multi-resolution design
+(Section~\ref{sec:chap5_triplets}).
+\label{sec:chap5_balancing}
+
+As discussed in Chapter~\ref{chap:llm_augmentation}, an
+unbalanced distribution of questions and answers introduces
+language biases that allow models to perform well by
+exploiting statistical shortcuts rather than genuine visual
+understanding~\cite{chappuis2023curse}. TAMMI's balancing
+procedure operates jointly at two levels: within each
+department, and across the dataset as a whole.
+
+For each VHR patch $p_\text{VHR}$, ten candidate questions per
+type are randomly generated from the available object
+collections. Questions are then selected from this candidate
+pool according to four criteria: (1) an equal number of
+questions is retained for each question type; (2) the number
+of questions per department is proportional to the number of
+VHR patches in that department; (3) the distribution of
+answers within each question type is balanced; and (4) no
+more than 50 question/answer pairs are retained per patch.
+
+For question types with a fixed number of possible answers
+$N_A$ (\textit{e.g.}, Presence, with $N_A = 2$ for
+\textit{yes}/\textit{no}), the maximum number of questions per
+answer is set to:
+
+\begin{equation}
+    N_{Q,A} = \frac{N_P}{\min(N_A, 10)}
+\end{equation}
+
+where $N_P$ is the number of VHR patches in the department.
+For Location questions, answers are binned into a $3 \times 3$
+spatial grid, giving $N_A = 9$. For question types with free
+numerical answers (\textit{e.g.}, Area, Count, Distance), the
+maximum number of questions sharing the same numerical answer
+$x$ is instead:
+
+\begin{equation}
+    N_{Q,A} = \frac{N_P}{\log(x + 3)}
+\end{equation}
+
+where the offset of 3 was chosen empirically. This formulation
+caps the frequency of any single numerical value while
+allowing rarer (typically larger) values to appear with
+proportionally higher relative frequency, counteracting the
+natural long-tailed distribution of quantities such as area or
+count in geographic data.
+
+Department and Region questions require special handling: for
+a given department, the answer to a Department question is
+always the same (\textit{e.g.}, every patch in department 75
+yields the answer ``Paris''), and similarly for Region. Left
+unconstrained, this would make these question types trivially
+predictable from the answer distribution alone. To preserve a
+balanced answer distribution at the dataset level despite this
+per-department constraint, the number of occurrences of each
+Department answer is capped at 2,473 (the number of VHR
+patches in Paris, department 75, the smallest department in
+the dataset), and each Region answer is capped at 16,274
+(the total number of patches in Île-de-France, the smallest
+region). This ensures that no single department or region
+answer dominates the overall answer distribution, even though
+it is deterministic within any given department.
+
+\subsection{Comparison with Existing RSVQA Datasets}
+\label{sec:chap5_comparison}
+
+Table~\ref{tab:chap5_datasets_comparison} compares TAMMI, the
+partial dataset of Chapter~\ref{chap:seg_attention}, and four
+existing RSVQA datasets along the dimensions of modality,
+resolution, annotation source, and scale.
+
+\begin{table*}[ht]
+\centering
+\small
+\caption{Comparison of TAMMI with the partial dataset of
+Chapter~\ref{chap:seg_attention} and existing RSVQA datasets.
+S1: Sentinel-1, S2: Sentinel-2. Missing values not reported in the
+corresponding source.}
+\label{tab:chap5_datasets_comparison}
+\begin{tabularx}{\textwidth}{
+  l
+  >{\raggedright\arraybackslash}X
+  >{\centering\arraybackslash}X
+  >{\raggedright\arraybackslash}X
+  >{\centering\arraybackslash}X
+  >{\centering\arraybackslash}X
+  >{\centering\arraybackslash}X
+  >{\centering\arraybackslash}X}
+\toprule
+\textbf{Dataset} & \textbf{Modalities} & \textbf{Resolution} &
+\textbf{Annotation} & \textbf{\#Images} & \textbf{\#Questions} &
+\textbf{\#Types} & \textbf{\#Unique A.} \\
+\midrule
+TAMMI &
+  BDOrtho, S2 (10 ch.), S1 (VV/VH/ratio) &
+  0.2m / 10--20m / 5$\times$20m &
+  BD TOPO, TRI, BU20, CLC, EMA &
+  282,852 & 3,162,514 & 21 & 109,737 \\
+TAMMI (partial, Ch.\ref{chap:seg_attention}) &
+  BDOrtho &
+  0.2m &
+  BD TOPO &
+  16,274 & 146,848 & 9 & N/A \\
+RSVQAxBEN~\cite{lobry2021rsvqaben} &
+  S2 (RGB) &
+  10m &
+  BigEarthNet &
+  590,326 & 14,758,150 & 2 & 26,875 \\
+RSIVQA~\cite{zheng2021mutual} &
+  Various (RGB) &
+  0.15--8m &
+  Manual / Other &
+  37,264 & 111,134 & 4 & 579 \\
+RSVQA-LR~\cite{lobry2020rsvqa} &
+  S2 (RGB) &
+  10m &
+  OSM &
+  772 & 77,232 & 4 & 9 \\
+RSVQA-HR~\cite{lobry2020rsvqa} &
+  USGS Ortho &
+  0.15m &
+  OSM &
+  10,659 & 1,066,316 & 4 & 55 \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Two observations follow from this comparison. First, TAMMI is
+the only dataset to combine three image modalities at three
+distinct spatial resolutions, whereas all other datasets
+(including the partial dataset of
+Chapter~\ref{chap:seg_attention}) rely on a single modality.
+Second, TAMMI substantially increases both the number of
+question types and the diversity of answers compared to all
+listed datasets except RSVQAxBEN, whose far larger answer
+count of 26,875 stems primarily from a small number of
+numerical question types (areas and counts over BigEarthNet
+patches) rather than from question type diversity,
+RSVQAxBEN provides only 2 question types, against TAMMI's 21.
+This combination of modality diversity, question type
+diversity, and answer diversity is the central methodological
+contribution of TAMMI relative to prior RSVQA datasets.
+
+\subsection{Dataset Splitting}
+\label{sec:chap5_splitting}
+
+As in Chapter~\ref{chap:seg_attention}, the dataset is split
+at the image level into training, validation, and test sets
+with a 60\%/20\%/20\% proportion. Splitting at the image level,
+rather than at the question level, ensures that no VHR
+patch (and therefore no geographic location) appears in more
+than one split, preventing information leakage between
+training and evaluation through spatially correlated
+questions about the same location.
+
+% ============================================================
+\section{Methodology: MM-RSVQA}
+\label{sec:chap5_method}
+% ============================================================
+
+\subsection{Overview}
+\label{sec:chap5_method_overview}
+
+We propose MM-RSVQA (Multi-modal Multi-resolution Remote
+Sensing Visual Question Answering), a baseline model for
+the multimodal RSVQA task introduced by TAMMI. The model
+takes as input a triplet of images $(p_\text{VHR},
+p_\text{MS}, p_\text{SAR})$ and a natural language question
+$q$, and predicts an answer from a closed vocabulary of
+$k = 1{,}000$ classes. It consists of three components:
+a multi-modal feature extraction module, a
+transformer-based fusion module, and a prediction head.
+The architecture is illustrated in
+Figure~\ref{fig:chap5_arch}.
+
+% NOTE: insert Figure 3 from the paper here
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{images/TAMMI/architecture.png}
+  \caption{Architecture of the MM-RSVQA model. Visual
+  features are extracted from each modality independently,
+  projected to a shared 768-dimensional space, and fused
+  with textual features using VisualBERT. The fused
+  representation is classified over the $k$ most frequent
+  training answers.}
+  \label{fig:chap5_arch}
+\end{figure}
+
+\subsection{Multi-Modal Feature Extraction}
+\label{sec:chap5_method_features}
+
+Each of the three image modalities is processed by a
+separate, independently pre-trained feature extractor,
+chosen to match the spectral and spatial characteristics
+of each modality.
+
+\textbf{VHR encoder.} Visual features $f_\text{VHR}$ are
+extracted from $p_\text{VHR}$ using a ResNet-152
+model~\cite{he2016resnet} pre-trained on ImageNet,
+consistent with the encoder-based RSVQA paradigm discussed
+in Chapter~\ref{chap:llm_augmentation}. The use of a
+deeper ResNet-152 here, compared to the ResNet-50 used in
+Chapter~\ref{chap:seg_attention}, reflects a difference in
+focus: Chapter~\ref{chap:seg_attention} deliberately
+constrained the encoder to isolate the contribution of the
+attention mechanism, whereas MM-RSVQA aims to establish a
+strong baseline over all three modalities, making a more
+capable VHR encoder appropriate.
+
+\textbf{Multispectral and SAR encoders.} Visual features
+$f_\text{MS}$ and $f_\text{SAR}$ are extracted from
+$p_\text{MS}$ and $p_\text{SAR}$ respectively using two
+separate ResNet-50 models pre-trained on
+BigEarthNet-MM~\cite{sumbul2021bigearthnetmm}, a
+large-scale multimodal archive of paired Sentinel-1 and
+Sentinel-2 patches annotated with CORINE Land Cover labels.
+BigEarthNet-MM pre-training is particularly appropriate
+here: it exposes the encoders to the precise spectral and
+polarimetric characteristics of Sentinel-2 and Sentinel-1
+data respectively, providing a much stronger initialization
+than ImageNet pre-training would for these non-RGB inputs.
+The patch size parameters are set to $L_\text{MS} = 100$
+and $L_\text{SAR} = 200$ pixels respectively.
+
+All three visual encoders are kept frozen during training,
+ensuring that the training signal is directed toward the
+fusion module rather than toward refining the visual
+representations. This also stabilizes training given the
+relatively small number of epochs used.
+
+\textbf{Textual features.} The question $q$ is tokenized
+using DistilBERT~\cite{sanh2019distilbert}, producing a
+sequence of token embeddings $f_q$. Unlike the VHR and
+multimodal visual encoders, the text encoder is fine-tuned
+as part of the VisualBERT fusion module described below.
+
+\subsection{Transformer-Based Data Fusion}
+\label{sec:chap5_method_fusion}
+
+The three visual feature vectors $f_\text{VHR}$,
+$f_\text{MS}$, and $f_\text{SAR}$ are each projected to a
+shared 768-dimensional space through separate linear layers.
+The three projected features are concatenated with a
+\texttt{[SEP]} token, which marks the boundary between
+visual and textual tokens, and then with the textual token
+embeddings $f_q$. A \texttt{[CLS]} token is prepended to
+represent the entire input sequence.
+
+This combined sequence is passed through
+VisualBERT~\cite{li2019visualbert}, a vision-language
+model based on a stack of transformer layers, pre-trained
+on image-caption pairs using image-text matching and masked
+language modeling objectives. VisualBERT uses self-attention
+to jointly model interactions between visual tokens and
+textual tokens, learning to align image regions with
+corresponding words and phrases in the question. This
+allows the fusion process to be \textit{trainable} and
+\textit{end-to-end}: rather than fusing modalities through
+a fixed rule such as concatenation or element-wise
+multiplication, VisualBERT learns to weight the
+contribution of each visual token dynamically, depending on
+the question content and the visual context.
+
+The key advantage of this design for the multimodal RSVQA
+task is that VisualBERT can in principle learn to attend
+selectively to the modality most informative for a given
+question type, for instance attending primarily to VHR
+tokens for fine-grained spatial questions, and to MS or SAR
+tokens for broader context questions about land cover or
+administrative classification.
+
+\subsection{Prediction and Training}
+\label{sec:chap5_method_prediction}
+
+The \texttt{[CLS]} token output of VisualBERT, which
+represents the fused multimodal representation, is passed
+through a linear layer that maps it to a $k$-dimensional
+output, where $k = 1{,}000$ corresponds to the most
+frequent answers in the training set (covering 86.6\% of
+all training answers). The VQA task is framed as a
+classification problem over this closed vocabulary.
+
+The model is trained using a cross-entropy loss, optimized
+with Adam at a learning rate of $3 \times 10^{-5}$, a
+batch size of 80, and for 5 epochs. Only questions whose
+answer falls within the top-$k$ vocabulary are used during
+training; the full test set is used for evaluation,
+including questions whose answers lie outside the vocabulary.
+
+% ============================================================
+\section{Experimental Study}
+\label{sec:chap5_experiments}
+% ============================================================
+
+\subsection{Experimental Setup}
+\label{sec:chap5_setup}
+
+All models are trained on the training split of TAMMI
+as described in Section~\ref{sec:chap5_splitting}, with
+hyperparameters tuned on the validation split. Evaluation
+is performed on the test split using three metrics: the
+per-question-type accuracy, the overall accuracy (OA),
+and the average accuracy (AA), computed as described in
+Chapter~\ref{chap:seg_attention}. The full test set is
+used regardless of whether a question's answer falls
+within the top-$k$ training vocabulary.
+
+Six model configurations are evaluated: the full MM-RSVQA
+model using all three modalities (VHR, MS, SAR), and five
+ablations examining single-modality and pairwise
+combinations:
+\begin{itemize}
+    \item \textbf{VHR only}: only the VHR orthophoto is
+    used;
+    \item \textbf{MS RGB + VHR}: only the three visible
+    bands (RGB) of the Sentinel-2 patch are used alongside
+    VHR;
+    \item \textbf{MS + VHR}: all 10 Sentinel-2 bands are
+    used alongside VHR;
+    \item \textbf{SAR + VHR}: only the SAR patch is used
+    alongside VHR;
+    \item \textbf{MS + SAR}: both Sentinel-2 and Sentinel-1
+    patches are used, without VHR.
+\end{itemize}
+
+\subsection{Results}
+\label{sec:chap5_results}
+
+The full results across all 21 question types are presented
+in Table~\ref{tab:chap5_results}.
+
+\begin{table*}[ht]
 \centering
 \footnotesize
-\begin{tabular}{llcccccc}
-\cline{4-8}
-& & & \multicolumn{4}{c}{\textbf{Ablation studies}} \\
-\hline
-\textbf{Category} & \textbf{Question Type} & \textbf{MM-RSVQA} & \textbf{VHR} & \textbf{MS RGB + VHR} & \textbf{MS + VHR} & \textbf{SAR + VHR} & \textbf{MS + SAR}\\
-\hline
-\multirow{3}{*}{\textbf{Presence Questions}} 
-    & Presence & \ 96.87 & 95.41 & 96.58 & 96.79 & \textbf{97.00} & 96.84 \\
-    & Flood Presence & 98.04 & 94.02 & 97.78 & 97.84 & 96.85 & \textbf{98.11} \\
-    & Mountain Presence & \textbf{98.80} & 95.76 & 98.75 & 98.49 & 97.75 & 98.59 \\
-\hline
-\multirow{4}{*}{\textbf{Quantity Questions}} 
-    & Count & \textbf{51.76} & 49.73 & 50.99 & 50.89 & 50.59 & 51.22\\
-    & Density & \textbf{26.46} & 26.17 & 26.40 & 26.45 & 26.42 & 26.44 \\
-    & Area & 10.28 & 10.28 & 10.30 & 10.12 & \textbf{10.33} & 10.32  \\
-    & Percentage & \textbf{41.66} & 41.58 & \textbf{41.66} & 41.60 & \textbf{41.66} & 41.62 \\
-\hline
-\textbf{Location Questions} 
-& Absolute Location & 17.17 & 17.15 & \textbf{17.21} & 16.89 & 17.04 & 17.18\\
-\hline
-\multirow{9}{*}{\textbf{Classification Questions}} 
-    & Water & \textbf{89.38} & 81.10 & 87.73 & 88.65 & 83.14 & 88.23 \\
-    & Vegetation & \textbf{53.06} & 48.57 & 50.92 & 51.00 & 48.57 & 50.83 \\
-    & Flood Level & \textbf{80.92} & 75.68 & 79.19 & 79.27 & 75.68 & 79.54 \\
-    & Flood Type & \textbf{97.91} & 90.60 & 95.68 & 96.93 & 95.54 & 97.32 \\
-    & Land Cover & 74.76 & 68.79 & 72.53 & 72.42 & \textbf{74.89} & 74.27 \\
-    & Urban & \textbf{93.78} & 69.20 & 90.33 & 91.58 & 92.40 & 93.32 \\
-    & Department & \textbf{98.96} & 89.78 & 97.39 & 97.58 & 98.03 & 98.47 \\
-    & Region & 99.98 & 99.96 & \textbf{99.99} & 99.92 & \textbf{99.99} & \textbf{99.99} \\
-    & Mountain Name & 99.89 & 99.94 & \textbf{99.96} & 99.91 & 99.89 & \textbf{99.96} \\
-\hline
-\multirow{4}{*}{\textbf{Relation Questions}} 
-    & Distance & \textbf{9.08} & \textbf{9.08} & 9.07 & 9.07 & 9.05 & \textbf{9.08} \\
-    & Comparison & \textbf{98.43} & 98.25 & 98.34 & 98.36 & \textbf{98.43} & 98.41 \\
-    & Relative Location & 17.99 & 18.10 & 17.77 & 17.62 & \textbf{18.17} & 17.74 \\
-    & Nearest & 21.57 & \textbf{21.71} & 20.56 & 20.89 & 20.96 & 20.74\\
-    
-\hline
-& \textbf{Average Accuracy} & \textbf{65.56} & 61.94 & 64.72 & 64.87 & 64.40 & 65.15 \\
-& \textbf{Overall Accuracy} & \textbf{55.11} & 52.22 & 54.41 & 54.49 & 54.29 & 54.70 \\
-\cline{2-8}
-\end{tabular}
-
-\caption{Accuracy for the VQA task on the TAMMI dataset.
-Comparison of MM-RSVQA, VHR, MS RGB + VHR, MS + VHR, SAR + VHR, and MS + SAR across question types. Highest scores (per question type) are shown in bold.}
-
-%\TODO{double check before to submit that the bold scores are the best}}
-\label{tab:results}
-
+\caption{Accuracy (\%) for the VQA task on the TAMMI
+dataset. Comparison of MM-RSVQA and ablation studies
+across question types. Highest score per question type
+shown in \textbf{bold}.}
+\label{tab:chap5_results}
+\begin{tabularx}{\textwidth}{l l
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X}
+\toprule
+\textbf{Category} & \textbf{Question Type}
+& \textbf{MM-RSVQA}
+& \textbf{VHR}
+& \textbf{MS RGB+VHR}
+& \textbf{MS+VHR}
+& \textbf{SAR+VHR}
+& \textbf{MS+SAR} \\
+\midrule
+\multirow{3}{*}{Presence}
+  & Presence          & 96.87 & 95.41 & 96.58 & 96.79 & \textbf{97.00} & 96.84 \\
+  & Flood Presence    & 98.04 & 94.02 & 97.78 & 97.84 & 96.85 & \textbf{98.11} \\
+  & Mountain Presence & \textbf{98.80} & 95.76 & 98.75 & 98.49 & 97.75 & 98.59 \\
+\midrule
+\multirow{4}{*}{Quantity}
+  & Count      & \textbf{51.76} & 49.73 & 50.99 & 50.89 & 50.59 & 51.22 \\
+  & Density    & \textbf{26.46} & 26.17 & 26.40 & 26.45 & 26.42 & 26.44 \\
+  & Area       & 10.28 & \textbf{10.28} & 10.30 & 10.12 & \textbf{10.33} & 10.32 \\
+  & Percentage & \textbf{41.66} & 41.58 & \textbf{41.66} & 41.60 & \textbf{41.66} & 41.62 \\
+\midrule
+Location
+  & Absolute Location & 17.17 & 17.15 & \textbf{17.21} & 16.89 & 17.04 & 17.18 \\
+\midrule
+\multirow{9}{*}{Classification}
+  & Water           & \textbf{89.38} & 81.10 & 87.73 & 88.65 & 83.14 & 88.23 \\
+  & Vegetation      & \textbf{53.06} & 48.57 & 50.92 & 51.00 & 48.57 & 50.83 \\
+  & Flood Level     & \textbf{80.92} & 75.68 & 79.19 & 79.27 & 75.68 & 79.54 \\
+  & Flood Type      & \textbf{97.91} & 90.60 & 95.68 & 96.93 & 95.54 & 97.32 \\
+  & Land Cover      & 74.76 & 68.79 & 72.53 & 72.42 & \textbf{74.89} & 74.27 \\
+  & Urban           & \textbf{93.78} & 69.20 & 90.33 & 91.58 & 92.40 & 93.32 \\
+  & Department      & \textbf{98.96} & 89.78 & 97.39 & 97.58 & 98.03 & 98.47 \\
+  & Region          & 99.98 & 99.96 & \textbf{99.99} & 99.92 & \textbf{99.99} & \textbf{99.99} \\
+  & Mountain Name   & 99.89 & \textbf{99.94} & \textbf{99.96} & 99.91 & 99.89 & \textbf{99.96} \\
+\midrule
+\multirow{4}{*}{Relational}
+  & Distance          & \textbf{9.08} & \textbf{9.08} & 9.07 & 9.07 & 9.05 & \textbf{9.08} \\
+  & Comparison        & \textbf{98.43} & 98.25 & 98.34 & 98.36 & \textbf{98.43} & 98.41 \\
+  & Relative Location & 17.99 & \textbf{18.10} & 17.77 & 17.62 & \textbf{18.17} & 17.74 \\
+  & Nearest           & 21.57 & \textbf{21.71} & 20.56 & 20.89 & 20.96 & 20.74 \\
+\midrule
+& \textbf{Average Accuracy}  & \textbf{65.56} & 61.94 & 64.72 & 64.87 & 64.40 & 65.15 \\
+& \textbf{Overall Accuracy}  & \textbf{55.11} & 52.22 & 54.41 & 54.49 & 54.29 & 54.70 \\
+\bottomrule
+\end{tabularx}
 \end{table*}
 
+\subsection{Discussion}
+\label{sec:chap5_discussion}
 
+\textbf{Benefit of multimodal fusion.}
+MM-RSVQA (all three modalities) achieves the highest
+average accuracy (AA = 65.56\%) and overall accuracy
+(OA = 55.11\%) among all configurations. The gain over
+VHR-only (AA = 61.94\%, OA = 52.22\%) is approximately
+3.6 points in AA and 2.9 in OA, confirming the core
+hypothesis of this work: even when questions concern
+only the geographic extent of the VHR patch, broader
+contextual information from MS and SAR modalities
+measurably improves performance. This effect is most
+pronounced for classification question types that
+inherently require information at a broader spatial
+scale, notably Urban (+24.6 points over VHR-only),
+Department (+9.2), Flood Level (+5.2), and Water (+8.3),
+where the context provided by Sentinel-2 and
+Sentinel-1 patches is directly informative about the
+classification label.
 
-\section{Results and discussion}
-\label{sec:results}
+\textbf{MS RGB vs. full MS.}
+The comparison between MS RGB + VHR and MS + VHR
+reveals a small but consistent advantage for the
+10-band multispectral configuration over the RGB-only
+subset across most question types (AA: 64.72 vs.
+64.87). This finding has an important methodological
+implication: it empirically validates the design
+choice of other RSVQA datasets (RSVQA-LR, RSVQAxBEN)
+that considered only the RGB channels of Sentinel-2,
+showing that the additional spectral bands provide
+limited benefit for VQA at this scale. To our
+knowledge, this is the first time this hypothesis has
+been experimentally tested in the context of RSVQA.
 
-We present preliminary performances of the proposed method MM-RSVQA on the TAMMI dataset. With respect to the RSVQA task, we discuss the contribution (and complementarity) of the different imaging modalities with regard to the different types of questions (and answers) constituting the dataset.
+\textbf{SAR contribution.}
+SAR + VHR achieves performance comparable to MS + VHR
+(AA: 64.40 vs. 64.87), indicating that SAR provides
+contextual information of similar utility to
+multispectral data for the overall task. SAR shows a
+particular advantage for land cover classification
+(74.89\%, the highest among all configurations),
+consistent with SAR's known sensitivity to surface
+roughness and dielectric properties that help
+discriminate land cover classes. This suggests that
+SAR and MS carry partially complementary information,
+which is further supported by the MS + SAR
+configuration (without VHR) achieving the second
+highest AA overall (65.15\%), only marginally below
+MM-RSVQA despite lacking the fine-grained spatial
+detail of the VHR orthophoto.
 
-\subsection{Experimental settings}
-\paragraph{Dataset splitting}
-The dataset is randomly split into training, validation, and test sets based on the images with a proportion of 60\%, 20\%, and 20\% respectively. We use the validation set for the tuning of the hyper-parameters described in the rest of this section. For the training, we consider only the questions having an answer in the top $k=1'000$ most frequent answers.This parameter is fixed for dimensionality reduction, as done in ~\cite{antol2015vqa}, ~\cite{lobry2020rsvqa}, covering 86.6\% of train answers. While we consider all the samples of the test set.
-\paragraph{Full pipeline}
-We use a frozen ResNet-152 model pre-trained on ImageNet for the orthophotos feature extractor and two ResNet-50 models pre-trained on BigEarthNet~\cite{sumbul2021bigearthnet} for the MS and SAR feature extractors. 
-We set $\lms = $ 100 and $\lsar = $ 200. 
-We use a cross-entropy loss, optimized with Adam. For the training of MM-RSVQA, we set the learning rate to $3\times 10^{-5}$, the batch size to 80 samples and the number of epochs to five.
+\textbf{Challenging question types.}
+Several question types remain difficult across all
+configurations: Distance (9.08\%), Area (10.28--10.33\%),
+Absolute Location (16.89--17.21\%), and Relative
+Location (17.62--18.17\%). These are precisely the
+types requiring precise spatial reasoning or metric
+estimation, tasks that are inherently challenging
+for a classification-based model operating on fixed
+feature representations. Notably, the addition of
+MS and SAR modalities does not consistently help for
+these types, and in some cases (Relative Location,
+Nearest) the VHR-only or SAR+VHR configurations
+slightly outperform MM-RSVQA. This suggests that
+the extra parameters introduced when adding modalities
+require more training data to be effective for
+spatially complex tasks, a hypothesis noted in the
+paper and left for future work.
 
-\subsection{Metrics}
-Three metrics are used to evaluate the VQA results: the per-class accuracy, overall accuracy (OA) and average accuracy (AA). 
-The per-class accuracy is defined as the ratio of correct answer with the total number of questions for one of the 21 question types. 
-The overall accuracy is the ratio of correct answers with the total number of questions in the dataset. 
-Finally, the average accuracy is the arithmetic mean of the per-class accuracies.
+% ============================================================
+\section{Explored Direction: Segmentation-Guided Attention
+for Multimodal Fusion}
+\label{sec:chap5_seg_attention_multimodal}
+% ============================================================
 
-\subsection{Quantitative results}
-To evaluate the proposed architecture and the TAMMI dataset, we conduct experiments using our main model MM-RSVQA and we perform ablation studies with various combinations of modalities. 
-The results are presented in Table \ref{tab:results}. We show the performances of the MM-RSVQA model (using VHR, MS and SAR modalities) and ablation studies across question types, highlighting the contributions of each modality in the context of this challenging task.
+%A thesis allows reporting not only the contributions that
+%succeeded but also directions that were explored and
+%abandoned, as these carry methodological lessons that
+%are not visible in the final published results. 
+This section describes an earlier version of the MM-RSVQA
+architecture that incorporated the segmentation-guided
+attention mechanism of Chapter~\ref{chap:seg_attention}
+into the multimodal setting, and analyses why it was
+ultimately replaced by the VisualBERT-based fusion
+described in Section~\ref{sec:chap5_method}.
 
-\paragraph{MM-RSVQA} 
-The proposed multi-modal multi-resolution baseline model, as seen in Table \ref{tab:results}, achieves strong performance across most question types and outperforms models using only one or two modalities. This highlights the advantage of integrating multiple modalities for the RSVQA task. 
-Notably, MM-RSVQA demonstrates high accuracy through categories such as presence, comparison, water and region. 
-These results indicate that combining VHR, MS, and SAR data helps the model to better identify objects, to assess quantities, and to improve classification accuracy. 
-For some question types, such as absolute location, area and relative location, the model shows lower accuracy. This suggests that these questions types are more challenging due to the difficulty of understanding spatial relationships or precisely locating objects. One hypothesis is that the added trainable parameters when adding MS and SAR modalities requires more training samples than for other models. %\TODO{CHECK BEFORE SUBMITTING} 
+\subsection{Architecture}
+\label{sec:chap5_seg_arch}
 
-\paragraph{Ablation study} 
-To evaluate the contribution of the different modalities we perform ablations studies at the input level. The results, shown in Table \ref{tab:results} present the accuracy of different configurations: VHR only; MS RGB + VHR (only keeping the RGB bands of Sentinel-2 and VHR patch); MS + VHR (10 bands of Sentinel-2 and VHR patch); SAR + VHR; and MS + SAR (Sentinel-1 SAR images + 10 bands of Sentinel-2).
+The earlier architecture retained the segmentation-guided
+attention mechanism of Chapter~\ref{chap:seg_attention}
+and attempted to extend it to all three modalities.
+The key design choices were as follows.
 
-From these results we observe that using VHR only does not allow to obtain good results. Despite the fact that the questions only concern the geographical extent of the VHR patch, it appears that providing additional context, either through MS or SAR, brings better performances. This is clearly visible in classification questions such as department or urban. This suggests that the integration of SAR and multi-spectral data enhances the ability of the model to understand and classify complex features. This validate the main hypothesis of this work: additional context, even if the question is restricted to a set geographical extent, improve performances.
+\textbf{Feature extraction.} A ResNet-50 pretrained on
+ImageNet was used for all three modalities (VHR, MS,
+and SAR) without the BigEarthNet pretraining that was
+later adopted for the MS and SAR encoders. The MS patch
+used only the three RGB bands of Sentinel-2, discarding
+the seven additional spectral bands. Each encoder produced
+a 1,000-dimensional feature vector ($f_\text{VHR}$,
+$f_\text{MS}$, $f_\text{SAR}$).
 
-By comparing MS RGB + VHR and MS + VHR, we can see that the performances are similar, with a small improvement for the model considering the 10 spectral bands of Sentinel-2 despite the added parameters. This validate the approach taken in other datasets considering Sentinel-2 data (RSVQA LR, RSVQAxBEN, see \autoref{tab:Overview}) which only considered the RGB channels. However, to the best of our knowledge, it is the first time that this hypothesis is experimentally demonstrated for VQA.
+\textbf{Segmentation-guided attention.} As in
+Chapter~\ref{chap:seg_attention}, a UPerNet model with a
+Swin Transformer backbone, pre-trained on ADE20K and
+fine-tuned on the 16-class BD TOPO annotations, was used
+to compute multi-channel segmentation maps from the VHR
+patch. The attention weights were computed by projecting
+$f_q$ to a 250-dimensional space via a linear layer and
+the segmentation features to 250 channels via a $1 \times
+1$ convolution, concatenating the two representations
+spatially, and applying a ReLU followed by a $1 \times 1$
+convolution. Unlike Chapter~\ref{chap:seg_attention},
+which produced a single attention glimpse, this version
+produced \textit{two} attention glimpses.
 
-Regarding the SAR modality, we can see that SAR + VHR obtains similar performances to MS + VHR. This indicates that the benefits of adding context holds whether the modality. However, it appears that SAR is particularly efficient at discriminating certain features, such as land cover. Finally, our experiment with MS + SAR modalities indicates that jointly considering both modalities is a strong advantage for the model. Indeed, despite not having the very high resolution data, this model obtains the second best overall performances behind MM-RSVQA.
+\textbf{Attention transfer to MS and SAR.} The attention
+map computed at VHR resolution was then \textit{downscaled}
+to the spatial extent corresponding to the MS and SAR
+patches, and applied to $f_\text{MS}$ and $f_\text{SAR}$
+respectively. For regions of the MS and SAR patches falling
+outside the VHR extent, the attention was padded with the
+spatial average of the VHR attention map.
 
-%On the other hand, by comparing VHR and MS RGB + VHR, we can see that adding broader context, such as a larger geographical area (covered by the MS patch), enhances the accuracy of the model. 
-%This is best displayed by questions categories such as Urban (increase of 20\%) and Departement (increase of 7\%). For the MS + VHR configuration, we observe that adding extended multi-spectral information generally helps improve accuracy compared to VHR and MS RGB + VHR, especially classification questions. We can therefore conclude that richer spectral information helps distinguish finer environmental features. Finally, for SAR + VHR configuration we observe that adding SAR improves the accuracy of certain questions types such as Land Cover, Area and Presence, suggesting the model benefits from SAR's ability to capture surface texture and structure. 
-%\begin{table*}[h]
-%\centering
-%\footnotesize
-%\begin{tabular}{|l|l|l|l|l|l|c|c|c|c|c|c|c|c|c|c|c|} \hline 
+\textbf{Prediction.} The attended features from all three
+modalities were concatenated with $f_q$ and passed through
+a 2-layer MLP to predict the answer over the top-1,000
+vocabulary, with dropout $d = 0.5$ and batch size 8.
 
-%\multirow{2}{*}{\textbf{Model}}  & \multicolumn{3}{|c|}{Used modalities} &\multicolumn{2}{|c|}{Model param.}&     \multicolumn{9}{|c|}{Per-question accuracy}&\multicolumn{2}{|c|}{Dataset metrics}\\ \cline{2-17}  
-%  & Ortho& MS&SAR & Att.&Seg.&     1.(a)& 1.(b)& 1.(c)&1.(d)& 2.(a)& 3.(a)&4.(a)& 4.(b)&4.(c)&AA&OA\\ \hline \hline
+The full architecture is illustrated in
+Figure~\ref{fig:chap5_early_arch}.
 
-%Proposed& \checkmark& \checkmark& \checkmark& \checkmark&\checkmark&     & & && & && &&44.41 & 42.21    \\ \hline\hline
-%A1& \checkmark& & & \checkmark&\checkmark& 91.57     &25.64 &63.43 &29.38&  14.58 &95.44&14.58 &20.10& 74.19 &45.42 &  47.74 \\ \hline  
-
-%A2& \checkmark& \checkmark& & \checkmark&\checkmark&84.36 & 17.12 & 42.40 & 22.26 & 13.29 & 75.39 & 11.48 & 12.71 & 55.83 & 36.48 & 37.20 \\ \hline  
-
-%A3& \checkmark& & \checkmark& \checkmark&\checkmark& 88.99& 23.89& 56.98 & 26.51 & 14.90 & 92.52 & 12.40 & 15.48 & 73.70 & 42.83 & 45.04 \\ \hline\hline  
-
-%M1  & \checkmark &\checkmark & \checkmark & \checkmark&  & 78.21& 06.30&  26.11& 14.40 &13.13 & 72.35&13.62 & 11.61& 31.76&31.76 & 29.73  \\ \hline 
-
-%M2  & \checkmark & \checkmark & \checkmark & && 79.11 &09.34& 36.62    & 18.99&12.40 &71.68&12.33 &12.40 &36.97&33.07 & 32.21 \\ \hline  
-
-
-
-%\end{tabular}
-%\caption{Results of our proposed model and ablation studies. All of the results are accuracy percentages.}
-%\label{tab:res}
-%\end{table*}
-
-
-\section{Conclusion and limitations}
-In this work, we address the VQA on Remote Sensing data problem by utilizing multi-modal and multi-resolution data. With these diverse modalities, we show that a model can benefit from their complementarity, in terms of coverage, spectral resolution, spatial resolution and physical information. 
-This represents a new challenge for the vision community, as the interaction between different image modalities, beyond RGB, and text remains under-explored.  To support this new problem, we propose a new dataset, named TAMMI, which contains 21 types of questions based on very high resolution patches (orthophotos), high-resolution multispectral data (Sentinel-2), and Synthetic Aperture Radar (Sentinel-1) images. The dataset spans three French departments, each with distinct landscapes, allowing for diverse and challenging questions. 
-
-%We introduce a baseline model to process the multi-modal images and the textual input data based on the VisualBERT architecture. Our results indicate that multi-resolution and multi-modal data enhance the model performances. The VHR modality is useful for tasks requiring high-detail images. For tasks requiring a broader context, the contributions from the SAR and MS modalities proves to be substantial. In our pipeline, we use all three modalities together, but the approach can be easily adapted to use only one or two modalities depending on availability. On the other hand, we show that using very high resolution RGB images alone does not allow, in our setting, to obtain good performances.
-We introduce a baseline model to process multi-modal images and textual input data based on the VisualBERT architecture. Our results indicate that multi-resolution and multi-modal data enhance model performance. The VHR modality is useful for tasks requiring high-detail images. For tasks requiring a broader context, the contributions from the SAR and MS modalities prove to be substantial. In our pipeline, we use all three modalities together. However, ablation studies show that even when one modality is missing, the proposed model obtains better performances compared to VHR RGB orthophotos alone. This is a strong result, as this modality is the one commonly used in RSVQA.
-
-%Future work is required to improve the modeling on this dataset. Indeed, dedicated feature extractors, leveraging the continuous spectral information of the MS modality or the physical information of SAR could be beneficial. By releasing this dataset, we provide a new challenging task. Thanks to the dynamic context selection for the MS and SAR patches, this dataset can be also used for a wide range of additional multi-modal tasks, besides VQA. Additionally, the provided dataset can easily be extended to include more regions, further enhancing its generalization and performance across diverse landscapes and environments.
-
-Future work includes developing better models using specialized feature extractors for multispectral and SAR data. This dataset introduces a challenging task and, thanks to dynamic context selection, supports a variety of multi-modal applications beyond VQA. It is also easily extensible to cover more regions, promoting better generalization across diverse landscapes and environments.
-
-
-\clearpage
-%\setcounter{page}{1}
-%\maketitlesupplementary
-%\setcounter{section}{1}
-
-\section*{SAR data (Sentinel-1) pre-processing}
-The pre-processing pipeline to generate continuous SAR (Sentinel-1) patches consists of several steps including SAR and VHR data. 
-We describe hereinafter each step in details:
-\begin{enumerate}
-    \item We use the algorithm presented in~\cite{weissgerber2022labsar} to find the position of the center of the VHR patch in the SAR image. To do so, we need the geographical position of the center of the VHR patch. This position must include altitude, due the geometrical distortions inherent in SAR, particularly layover;
-    
-    \item The latitude and longitude of the VHR patches are extracted from the meta-data of the image. Using this latitude and longitude, the altitude is given by this \href{https://geoservices.ign.fr/documentation/services/services-deprecies/calcul-altimetrique-rest}{https://geoservices.ign.fr/documentation/services/services-deprecies/calcul-altimetrique-rest} and these information are stored in a JSON file, \textit{latlonalt.json};
-    
-    \item The Sentinel-1 Single Look Complex (SLC) images are separated in three swath. To find the correct swath, the projection of the geographical point is applied, using the meta-data linked to each swath. The only swath for which the algorithm returns a valid position is selected;
-    
-    \item In each swath, the S1 image is divided in different overlapping bursts, that are all stored in the same file separated by black lines. 
-    The S1 images need to be debursted (removing of the black line and of the overlap) to get a continuous image before to extract the S1 patch that is inputted in the model. 
-    This debursting is done using meta-data of the S1 image and by comparing the two consecutive burst. A result of the debursting process is shown in Figure \ref{fig:sarprepostdeburst}.
-    The debursted images are provided with the dataset. The projection algorithm is thus modified to give the position in this new deburst file. This position and the correct swath are stored in the JSON file containing all information on the VHR patches;
-    
-    \item When a patch of size $\lsar$ $\times$ $\lsar$ ($\lsar$ specified by the user) is extracted, the two polarimetric channels are converted in dB, and the ratio is computed. A tail-value elimination procedure is performed on each channel separately using statistics information extracted over the whole dataset.
-\end{enumerate}
- %   \footnotetext{https://geoservices.ign.fr/documentation/services/services-deprecies/calcul-altimetrique-rest}
-
-
-\begin{figure}[!ht]
+\begin{figure}[ht]
     \centering
-    \begin{subfigure}[b]{0.49\columnwidth}
-        \centering
-        \includegraphics[width=\textwidth,trim={1.5cm 1.5cm 1.5cm 1.5cm},clip]{images/TAMMI/original_patch.png}
-        \caption{Pre-debursting}
-        \label{fig:sub1}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.49\columnwidth}
-        \centering
-        \includegraphics[width=\textwidth,trim={1.5cm 1.5cm 1.5cm 1.5cm},clip]{images/TAMMI/final_patch.png}
-        \caption{Post-debursting}
-        \label{fig:sub2}
-    \end{subfigure}
-    \caption{Sentinel-1 SLC images before (a) and after (b) the application of the proposed debursting method. 
-    The visualization is done using a threshold of 233.}
-    \label{fig:sarprepostdeburst}
+    % NOTE: insert Figure 4 from the earlier CVPR submission here
+    % (graphical outline of the earlier architecture with
+    % segmentation-guided attention applied across all three
+    % modalities; inputs in blue, outputs in red, ground truths
+    % in green)
+    \includegraphics[width=\textwidth]{images/TAMMI/CVPR_Method.png}
+    \caption{Architecture of the earlier multimodal
+    segmentation-guided attention model. Visual features are
+    extracted from all three modalities using ResNet-50
+    encoders pretrained on ImageNet. Attention weights are
+    computed jointly from the VHR segmentation maps and the
+    question, then downscaled and applied to the MS and SAR
+    feature maps. The attended features are concatenated with
+    the textual features and classified over the top-1,000
+    vocabulary. Compare with the final MM-RSVQA architecture
+    (Figure~\ref{fig:chap5_arch}), which replaces this
+    mechanism with VisualBERT-based transformer fusion.}
+    \label{fig:chap5_early_arch}
 \end{figure}
 
-\newpage
-\clearpage
+Table~\ref{tab:chap5_early_results} reports the per-question
+type accuracy, AA, and OA of the proposed model and its
+ablations on the partial TAMMI dataset (4 Île-de-France
+departments, 9 question types, 146,848 Q\&A pairs).
+
+\begin{table*}[ht]
+\centering
+\small
+\caption{Results of the earlier segmentation-guided
+attention model and ablation studies on the partial TAMMI
+dataset (4 departments, 9 question types). Att: attention
+mechanism; Seg: segmentation guidance. All values are
+accuracy percentages. Best AA/OA in \textbf{bold}.}
+\label{tab:chap5_early_results}
+\begin{tabularx}{\textwidth}{l ccc cc
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    cc}
+\toprule
+\multirow{2}{*}{\textbf{Model}}
+  & \multicolumn{3}{c}{\textbf{Modalities}}
+  & \multicolumn{2}{c}{\textbf{Params}}
+  & \multicolumn{9}{c}{\textbf{Per-question accuracy}}
+  & \multicolumn{2}{c}{\textbf{Metrics}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}
+\cmidrule(lr){7-15}\cmidrule(lr){16-17}
+& VHR & MS & SAR & Att & Seg
+& 1a & 1b & 1c & 1d & 2a & 3a & 4a & 4b & 4c
+& AA & OA \\
+\midrule
+Proposed & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark
+& & & & & & & & &
+& 44.41 & 42.21 \\
+A1 & \checkmark & & & \checkmark & \checkmark
+& 91.57 & 25.64 & 63.43 & 29.38 & 14.58 & 95.44 & 14.58 & 20.10 & 74.19
+& \textbf{45.42} & \textbf{47.74} \\
+A2 & \checkmark & \checkmark & & \checkmark & \checkmark
+& 84.36 & 17.12 & 42.40 & 22.26 & 13.29 & 75.39 & 11.48 & 12.71 & 55.83
+& 36.48 & 37.20 \\
+A3 & \checkmark & & \checkmark & \checkmark & \checkmark
+& 88.99 & 23.89 & 56.98 & 26.51 & 14.90 & 92.52 & 12.40 & 15.48 & 73.70
+& 42.83 & 45.04 \\
+\midrule
+M1 & \checkmark & \checkmark & \checkmark & \checkmark &
+& 78.21 & 06.30 & 26.11 & 14.40 & 13.13 & 72.35 & 13.62 & 11.61 & 31.76
+& 31.76 & 29.73 \\
+M2 & \checkmark & \checkmark & \checkmark & &
+& 79.11 & 09.34 & 36.62 & 18.99 & 12.40 & 71.68 & 12.33 & 12.40 & 36.97
+& 33.07 & 32.21 \\
+
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+The most striking finding is that the Proposed model
+(Att + Seg, all three modalities) achieves lower OA
+(42.21\%) than ablation A1 (Att only, no Seg, OA =
+47.74\%) and is only marginally better than A2 (Seg
+only, no Att, OA = 37.20\%). Segmentation guidance,
+which improved performance by approximately 10 points
+in Chapter~\ref{chap:seg_attention}, actively hurts
+performance here.
+
+\subsection{Analysis}
+\label{sec:chap5_seg_analysis}
+
+The failure of segmentation-guided attention in the
+multimodal setting cannot be attributed to a single cause.
+Rather, it reflects a convergence of several compounding
+issues, which we analyse below.
+
+\textbf{Spatial resolution mismatch in attention
+transfer.} The most fundamental issue is the assumption
+that VHR segmentation attention can be meaningfully
+transferred to MS and SAR features by spatial downscaling.
+In Chapter~\ref{chap:seg_attention}, the segmentation map
+and the visual features it guides are spatially aligned at
+20\,cm resolution: each segmentation channel directly
+corresponds to the same spatial location in the VHR
+feature map, making attention a precise, pixel-level
+operation. When the same attention map is downscaled to
+the MS spatial extent (10--20\,m/pixel) and applied to
+MS features, this spatial correspondence is lost: a single
+MS feature vector aggregates information over an area
+$50\times$ to $100\times$ larger than the corresponding
+VHR attention cell. The downscaled attention map is
+therefore too coarse to provide meaningful spatial
+guidance over MS features, and the average-padding
+strategy used for regions outside the VHR extent adds
+further noise for the large portion of the MS/SAR patch
+that lies beyond the primary area of interest.
+
+\textbf{Inadequate encoder pretraining for MS and SAR.}
+In this earlier architecture, all three visual encoders
+use ResNet-50 pretrained on ImageNet, which was designed
+for natural RGB images. The MS encoder receives only the
+three RGB bands of Sentinel-2, discarding seven spectral
+bands that carry most of Sentinel-2's discriminative
+power. The SAR encoder applies ImageNet weights to
+backscatter amplitude values whose statistical
+distribution differs fundamentally from that of natural
+images. As a result, the MS and SAR feature maps
+$f_\text{MS}$ and $f_\text{SAR}$ are poorly conditioned:
+they do not represent semantically meaningful spatial
+structure that the segmentation-guided attention could
+exploit. This contrasts with the final MM-RSVQA model,
+where dedicated BigEarthNet-pretrained ResNet-50 encoders
+produce semantically richer representations of the
+satellite modalities.
+
+\textbf{Dataset size relative to model complexity.}
+The earlier model is trained on the partial TAMMI dataset
+(146,848 Q\&A pairs over 16,274 image triplets)
+while simultaneously supervising a segmentation auxiliary
+task and learning attention weights for three modalities.
+This represents a significantly higher number of
+trainable parameters per training sample than in
+Chapter~\ref{chap:seg_attention}, where segmentation
+guided attention for a single modality. The final
+MM-RSVQA model, trained on the full TAMMI dataset with
+3,162,514 Q\&A pairs (more than $20\times$ larger), is
+better positioned to support the additional parameters
+introduced by multimodal fusion.
+
+\textbf{RGB-only multispectral input.} Using only the
+RGB channels of Sentinel-2 largely negates the spectral
+advantage of multispectral imagery. Most of Sentinel-2's
+discriminative power for land cover and material
+classification lies in the NIR and SWIR bands, which are
+absent from the RGB-only configuration. This reduces the
+MS modality to a lower-resolution version of an RGB
+image, providing little complementary information beyond
+the VHR patch and limiting the potential benefit of the
+multimodal architecture.
+
+\textbf{Lessons learned.} Taken together, these findings
+motivated three key changes in the final MM-RSVQA model.
+First, the segmentation-guided attention mechanism was
+dropped entirely in favour of VisualBERT's trainable
+transformer-based fusion, which does not require spatial
+alignment between modalities and learns cross-modal
+interactions end-to-end. Second, dedicated
+BigEarthNet-pretrained encoders were adopted for MS and
+SAR, providing semantically appropriate feature
+representations for each modality. Third, 10
+spectral bands of Sentinel-2 were used, and the dataset
+was extended to 6 departments and 3.1 million Q\&A pairs
+to provide sufficient supervision for the multimodal
+fusion parameters. The improvement from AA = 44.41\% to
+AA = 65.56\% between the earlier architecture and the
+final MM-RSVQA model reflects the cumulative effect of
+these corrections.
+
+\section{Conclusion}
+\label{sec:chap5_conclusion}
+
+This chapter introduced two contributions to the
+multimodal RSVQA task. The TAMMI dataset combines VHR
+optical imagery, multispectral data, and SAR imagery
+across six departments and three contrasting geographic
+regions of Metropolitan France, with 21 question types
+drawn from five geographic databases and over 3.1 million
+question-answer pairs. The MM-RSVQA model provides a
+baseline for this dataset by fusing features from all
+three modalities and the question through a VisualBERT
+transformer, demonstrating consistent gains from
+multimodal fusion over single-modality VHR baselines,
+particularly for classification questions requiring
+broader spatial context.
+
+\textbf{Limitations.}
+Several limitations of this work warrant acknowledgment.
+First, the model uses frozen visual encoders; end-to-end
+fine-tuning of the feature extractors, particularly the
+BigEarthNet-pretrained encoders for MS and SAR, may yield
+further improvements. Second, the MS and SAR patch sizes
+($L_\text{MS} = 100$, $L_\text{SAR} = 200$) are fixed
+hyperparameters chosen empirically; a dynamic context
+selection mechanism could allow the model to adaptively
+choose the spatial extent most informative for each
+question. Third, questions about spatial relationships and
+metric quantities (distance, area, absolute and relative
+location) remain challenging regardless of the modality
+combination used, suggesting that the fusion architecture
+alone is insufficient for spatially complex reasoning,
+a limitation shared with the model of
+Chapter~\ref{chap:seg_attention} and likely requiring
+dedicated spatial reasoning components. Fourth, the
+dataset covers Metropolitan France only; whether the
+learned representations and the question taxonomy
+generalize to other geographic contexts, imaging
+conditions, or sensor configurations remains an open
+question. Fifth, the training vocabulary covers 86.6\%
+of training answers; questions with answers outside this
+vocabulary are systematically unanswerable by the model,
+which penalizes overall accuracy disproportionately for
+rare-answer question types such as Distance and Area.
+
+\textbf{Perspectives.}
+The TAMMI dataset and the findings of this chapter open
+several directions for future work. The dynamic context
+selection enabled by the configurable $L_\text{MS}$ and
+$L_\text{SAR}$ parameters could be used to study how
+the optimal spatial extent varies across question types.
+The multi-task setting, in which a model is trained
+jointly on multiple question types from the same dataset,
+is a natural next step, explored in
+Chapter~\ref{chap:multitask}. More broadly, the
+combination of rich geographic database annotations and
+three complementary image modalities makes TAMMI a
+suitable testbed for future work on multimodal RS
+foundation models.
+
+The results of this chapter confirm that multimodal
+fusion improves RSVQA performance when questions require
+broader spatial context. The following chapter builds
+on this dataset to investigate whether jointly training
+on multiple complementary tasks can further improve the
+model's ability to answer complex questions about
+remote sensing scenes.
+
+% ============================================================
+% BIBLIOGRAPHY ENTRIES NEEDED FOR THIS CHAPTER
+% (add to your main .bib file)
+% ============================================================

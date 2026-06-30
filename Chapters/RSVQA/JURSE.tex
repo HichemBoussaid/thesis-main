@@ -1,5 +1,6 @@
 \chapter{LLM-Driven Data Augmentation for Visual Question Answering}
-\epigraph{\itshape  La volonté trouve, la liberté choisit. Trouver et choisir, c'est penser}{-- Victor Hugo}
+\label{chap:llm_augmentation}
+%\epigraph{\itshape  La volonté trouve, la liberté choisit. Trouver et choisir, c'est penser}{-- Victor Hugo}
 
 \startcontents[chapters]
 \printmyminitoc{
@@ -461,12 +462,13 @@ question was classified as \textit{correct}
 \textit{borderline} (meaning slightly altered but
 arguably equivalent), or \textit{incorrect} (meaning
 changed or answer not preserved). The results of this
-evaluation are presented in Table~\ref{tab:prompt_eval}.
+evaluation are presented in Table~\ref{tab:perf_prompts}.
 
 \begin{table*}[!t]
   \centering
   \footnotesize
    \resizebox{\textwidth}{!}{ % Adjust the width as needed
+   
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
     \hline
 
@@ -507,7 +509,8 @@ evaluation are presented in Table~\ref{tab:prompt_eval}.
   \end{tabular}
   }
   \caption{Performances of different prompts (p1–p9) (see Table \ref{tab:prompts}) in answering questions across Easy, Medium, and Hard complexities. The numbers represent correct/incorrect/borderline responses for each question.}
-  \label{tab:perf prompts}
+
+  \label{tab:perf_prompts}
 \end{table*}
  
  
@@ -688,7 +691,7 @@ reported.
 \subsection{Results and Discussion}
 \label{sec:chap3_results}
  
-Table~\ref{tab:results} presents the cross-evaluation
+Table~\ref{tab:chap3_results} presents the cross-evaluation
 results for all three models across all three test sets.
  
 \begin{table*}[ht]
@@ -698,7 +701,7 @@ results for all three models across all three test sets.
 BT-Aug models across different test sets. Accuracy (\%) per
 question type. Avg = average across the three test sets.
 Best per training condition in \textbf{bold}.}
-\label{tab:results}
+\label{tab:chap3_results}
 \begin{tabularx}{\textwidth}{
   l
   >{\centering\arraybackslash}X
@@ -763,10 +766,16 @@ model does not sacrifice in-distribution accuracy.
 This suggests that the generated questions, while
 more varied, do not introduce sufficient noise to
 degrade performance on the original phrasing
-distribution. The BT-Aug model also improves slightly
-over the baseline on the original test set (69.07\%
-overall), though the gap relative to the LLM-Aug
-model is substantial.
+distribution. In contrast, the BT-Aug model performs notably worse on
+the original test set (69.07\%), a drop of roughly 13
+points compared to the Original model (82.17\%). This
+indicates that back-translation augmentation, unlike
+LLM-based augmentation, introduces enough noise into the
+training distribution to measurably degrade
+in-distribution performance, likely a consequence of
+the lower-quality paraphrases produced by the
+translation pipeline, as discussed in
+Section~\ref{sec:chap3_rw_nlp}.
  
 \textbf{Generalization to augmented phrasings.}
 When each model is tested on its own augmented test

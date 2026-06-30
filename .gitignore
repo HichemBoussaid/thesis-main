@@ -38,3 +38,7 @@
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Project-specific extras
+Chapters/RSVQA/test.py
+images/TAMMI/Chapter_TAMMI.pdf

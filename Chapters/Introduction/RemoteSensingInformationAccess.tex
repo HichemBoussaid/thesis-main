@@ -1,28 +1,135 @@
-\chapter{Remote Sensing \& Information Access}
- 
-\section{The Remote Sensing Data Explosion}
-\begin{itemize}[leftmargin=1.5em]
-    \item Growth in satellite imagery volume and diversity
-    \item Heterogeneity of sensors: optical, SAR, multispectral, hyperspectral
-    \item The gap between data availability and usable information
-\end{itemize}
- 
-\section{The Challenge of Information Extraction at Scale}
-\begin{itemize}[leftmargin=1.5em]
-    \item Traditional methods and their limitations
-    \item The need for automated, language-accessible systems
-    \item Overview of vision-language paradigms
-\end{itemize}
- 
-\section{Research Questions \& Thesis Scope}
-\begin{itemize}[leftmargin=1.5em]
-    \item How can vision-language models be adapted to the RS domain?
-    \item How do different tasks (VQA, Captioning, Retrieval) share and transfer knowledge?
-    \item How can data scarcity be addressed in multimodal RS benchmarks?
-\end{itemize}
- 
-\section{Thesis Contributions Overview}
+\chapter{Introduction}
 
- 
-\section{Manuscript Organization}
- 
+\section{Remote Sensing and Information Access}
+
+\subsection{The Remote Sensing Data Explosion}
+\begin{itemize}
+    \item Historical evolution of Earth Observation systems
+    \item Emergence of large-scale satellite constellations (public and private actors)
+    \item Diversity of sensing modalities:
+    \begin{itemize}
+        \item Optical imagery (RGB, high-resolution)
+        \item Synthetic Aperture Radar (SAR)
+        \item Multispectral and hyperspectral imaging
+    \end{itemize}
+    \item Increasing spatial, spectral, and temporal resolution
+    \item Continuous monitoring and the rise of time series data
+    \item From data scarcity to data overabundance: challenges of scalability
+\end{itemize}
+
+\subsection{The Challenge of Information Extraction at Scale}
+\begin{itemize}
+    \item Traditional remote sensing pipelines:
+    \begin{itemize}
+        \item Scene classification
+        \item Object detection
+        \item Semantic segmentation
+    \end{itemize}
+    \item Limitations of task-specific models:
+    \begin{itemize}
+        \item Lack of flexibility
+        \item Strong dependence on labeled data
+        \item Poor generalization across datasets and sensors
+    \end{itemize}
+    \item Gap between low-level predictions and high-level semantic understanding
+    \item Need for systems capable of:
+    \begin{itemize}
+        \item Aggregating information across modalities
+        \item Answering complex queries
+        \item Supporting decision-making processes
+    \end{itemize}
+\end{itemize}
+
+\subsection{Towards Multimodal and Interactive Earth Observation}
+\begin{itemize}
+    \item Definition of multimodal learning (vision + language)
+    \item Success of vision-language models in computer vision
+    \item Relevance to remote sensing:
+    \begin{itemize}
+        \item Bridging the semantic gap
+        \item Enabling natural language queries over geospatial data
+    \end{itemize}
+    \item Introduction to tasks combining vision and language:
+    \begin{itemize}
+        \item Image captioning
+        \item Visual Question Answering (VQA)
+        \item Cross-modal retrieval
+    \end{itemize}
+    \item Towards user-centric Earth Observation systems
+\end{itemize}
+
+\subsection{From Isolated Tasks to Unified Learning}
+\begin{itemize}
+    \item Fragmentation of the field into specialized tasks:
+    \begin{itemize}
+        \item Classification, segmentation, detection
+        \item Captioning, VQA, retrieval
+    \end{itemize}
+    \item Limitations of single-task learning:
+    \begin{itemize}
+        \item Redundant representations
+        \item Inefficient use of data
+    \end{itemize}
+    \item Multi-task learning as a paradigm:
+    \begin{itemize}
+        \item Shared representations across tasks
+        \item Implicit regularization
+        \item Improved generalization
+    \end{itemize}
+    \item Synergies between tasks:
+    \begin{itemize}
+        \item Captioning supporting VQA
+        \item Retrieval enhancing representation learning
+        \item Reconstruction enforcing semantic consistency
+    \end{itemize}
+\end{itemize}
+
+\subsection{Scientific Challenges}
+\begin{itemize}
+    \item \textbf{Data-related challenges:}
+    \begin{itemize}
+        \item Scarcity of annotated multimodal datasets
+        \item High annotation cost and expertise requirements
+        \item Dataset bias and limited diversity
+    \end{itemize}
+    
+    \item \textbf{Model-related challenges:}
+    \begin{itemize}
+        \item Adapting vision-language models to remote sensing data
+        \item Handling heterogeneous modalities (SAR vs optical)
+        \item Scalability and efficiency
+    \end{itemize}
+    
+    \item \textbf{Learning challenges:}
+    \begin{itemize}
+        \item Generalization across sensors and geographic regions
+        \item Robustness to noise and domain shifts
+        \item Learning with limited supervision
+    \end{itemize}
+    
+    \item \textbf{Temporal and reasoning challenges:}
+    \begin{itemize}
+        \item Modeling temporal dynamics
+        \item Change detection and interpretation
+        \item Joint reasoning over space, time, and language
+    \end{itemize}
+\end{itemize}
+
+\subsection{Research Questions and Thesis Scope}
+\begin{itemize}
+    \item How can multimodal learning improve access to remote sensing information?
+    \item How to design models that jointly leverage vision and language in this domain?
+    \item How to address data scarcity and improve generalization?
+    \item How to exploit synergies between multiple tasks?
+    \item How to incorporate temporal information and reason about changes?
+\end{itemize}
+
+\subsection{Thesis Contributions Overview}
+\begin{itemize}
+    \item Contribution 1: Dataset augmentation strategies leveraging large language models
+    \item Contribution 2: TAMMI
+    \item Contribution 3: MM-RSVQA
+    \item Contribution 4: Segmentation Guided Attention 
+    \item Contribution 5: Unified multi-task framework (captioning, VQA, reconstruction)
+    \item Contribution 6: Composed image retrieval for bi-temporal change analysis
+\end{itemize}
