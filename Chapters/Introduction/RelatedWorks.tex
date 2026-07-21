@@ -3,32 +3,133 @@
 
 \startcontents[chapters]
 \printmyminitoc{
-	\lipsum[1]
+	%\lipsum[1]
 }
 
+% ============================================================
+% CHAPTER 2, RELATED WORKS
+% Section 2.1 Introduction + Section 2.2 Datasets
+% Draft for review. Entries below match keys in related_works_refs.bib
+% ============================================================
 
-\section{Remote Sensing Image Understanding}
-\begin{itemize}[leftmargin=1.5em]
-    \item Scene classification, object detection, semantic segmentation
-    \item The role of spatial context in RS interpretation
-\end{itemize}
- 
-\section{Vision-Language Tasks}
-\subsection{Visual Question Answering (VQA)}
-\subsection{Image Captioning}
-\subsection{Image-Text Retrieval \& Composed Retrieval}
- 
-\section{Multimodal Architectures}
-\begin{itemize}[leftmargin=1.5em]
-    \item Attention mechanisms and cross-modal fusion
-    \item CLIP-like contrastive models
-    \item Large Language Models (LLMs) and their role in multimodal pipelines
-\end{itemize}
- 
-\section{Existing RS Datasets and Their Limitations}
-\begin{itemize}[leftmargin=1.5em]
-    \item Overview of RSVQA, and related benchmarks
-    \item Modality gaps and resolution constraints
-    \item Data scarcity and diversity issues
-\end{itemize}
- 
+\section{Introduction}
+\label{sec:rw-intro}
+
+The volume of Earth Observation (EO) imagery acquired every day has grown far beyond the capacity of traditional, expert-driven analysis pipelines to exploit it. Natural language offers an accessible interface to this data, allowing non-expert users to query, describe, and search EO archives without specialized remote sensing knowledge. This idea has given rise to a family of vision-language tasks in remote sensing (RS): Visual Question Answering (RSVQA), which answers free-form questions about an image; image captioning, which generates a natural language description of a scene; and cross-modal retrieval, which recovers imagery or text based on a query in the other modality. Although these tasks are usually studied separately, they share the same underlying ingredients: a visual encoder capable of representing RS imagery across resolutions and modalities, a language encoder or decoder, and a mechanism to align or fuse the two. This thesis is built on the premise that studying the synergies between these tasks, rather than treating them in isolation, benefits all three.
+
+This chapter reviews the state of the art in three parts, mirroring this task decomposition. Section~\ref{sec:rw-datasets} reviews existing datasets for RSVQA, captioning, and retrieval, including recent large-scale vision-language pretraining corpora that increasingly straddle several tasks at once. Section~\ref{sec:rw-methods} reviews methods, from task-specific architectures to the recent wave of RS-adapted foundation models and vision-language models (VLMs) that tackle several tasks jointly. Section~\ref{sec:rw-challenges} discusses open challenges that cut across the three tasks: multi-modality, output space design, interpretability and explainability, and trustworthiness. Section~\ref{sec:rw-positioning} closes the chapter by positioning the contributions of this thesis, TAMMI / MM-RSVQA and CTCR-RS, within this landscape.
+
+\section{Datasets}
+\label{sec:rw-datasets}
+
+\subsection{Visual Question Answering datasets}
+\label{sec:rw-datasets-vqa}
+
+RSVQA was introduced by \textcite{lobry2020rsvqa} to allow users to query EO imagery through natural language questions such as "Is there a flood in this image?" or "How many buildings are in this area?". Since then, a large number of datasets have extended the task along three main axes: the image modality considered, the diversity and coverage of the questions, and the overall data volume.
+
+Most existing datasets rely on optical imagery, acquired either from UAVs (FloodNet-v2~\cite{sarkar2023floodnet}, RescueNet~\cite{sarkar2023rescuenet}), aerial orthophotos (RSVQA-HR~\cite{lobry2020rsvqa}, CRSVQA~\cite{zhang2023crsvqa}), or satellites (RSVQA-LR~\cite{lobry2020rsvqa}, EarthVQA~\cite{wang2024earthvqa}). Resolution has a direct effect on both data availability and the granularity of the questions that can be asked: coarser satellite imagery is abundant and free, while very high-resolution data is sparser and costlier, but supports more fine-grained queries. A smaller set of datasets combine multiple sources of imagery, either to increase applicability (RSIVQA~\cite{zheng2021rsivqa}), to address multi-temporal change detection (CDVQA~\cite{yuan2022cdvqa}), or to fuse optical with SAR data (RSVQAxBEN-MM~\cite{tosato2024can}, and this thesis' TAMMI~\cite{boussaid2025tammi}).
+
+Question diversity is inherently limited by the annotation strategy. Fully manual annotation is costly and remains rare at scale, with FloodNet-v2, CRSVQA, and RSIEval~\cite{hu2023rsgpt} as notable but small-scale exceptions (43, 674, and 936 unique questions respectively). Most datasets instead derive questions automatically from existing labels or external geographic sources (e.g. RSVQA-HR from OpenStreetMap), which bounds the achievable question diversity to what the source data covers. Data volume follows from these two factors and varies by several orders of magnitude across datasets, from a few hundred images (RSIEval) to hundreds of thousands of images and millions of questions (RSVQAxBEN-MM~\cite{tosato2024can}, TAMMI~\cite{boussaid2025tammi}).
+
+Table~\ref{tab:rw-vqa-datasets} summarizes the main characteristics of existing RSVQA datasets.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l X c c c}
+\hline
+\textbf{Name} & \textbf{Modalities} & \textbf{Resolution} & \textbf{\# Images} & \textbf{\# Questions} \\
+\hline
+TAMMI~\cite{boussaid2025tammi} & Optical (VHR, 10-band MS), SAR (VV/VH/Ratio) & 0.2m / 10-20m & 282,852 & 3,162,514 \\
+RSVQAxBEN-MM~\cite{tosato2024can} & Optical (RGB), SAR (VV/VH/Ratio) & 10m & 590,326 & 14,758,150 \\
+OSVQA~\cite{zhao2024textguided} & Optical, SAR & 1/10m & 6,008 & 1,036,694 \\
+RSVQAxBEN~\cite{lobry2021rsvqaben} & Optical (RGB) & 10m & 590,326 & 14,758,150 \\
+Chessboard~\cite{tosato2025checkmate} & Optical (RGB) & 10m & 549,488 & 3,123,253 \\
+RSIVQA~\cite{zheng2021rsivqa} & Various RGB & 0.15-8m & 37,264 & 111,134 \\
+RSVQA LR~\cite{lobry2020rsvqa} & Optical (RGB) & 10m & 772 & 77,232 \\
+RSVQA HR~\cite{lobry2020rsvqa} & Optical (RGB) & 0.15m & 10,659 & 1,066,316 \\
+FloodNet-v2~\cite{sarkar2023floodnet} & UAV & 0.015m & 2,348 & 10,480 \\
+RescueNet~\cite{sarkar2023rescuenet} & UAV & 0.015m & 4,375 & 65,328 \\
+HRVQA~\cite{li2024hrvqa} & Optical (RGB) & 0.08m & 53,512 & 1,070,240 \\
+EarthVQA~\cite{wang2024earthvqa} & Optical (RGB) & 0.3m & 6,000 & 208,593 \\
+CDVQA~\cite{yuan2022cdvqa} & Bi-temporal RGB & 0.5/3m & 2,968 & \\
+CRSVQA~\cite{zhang2023crsvqa} & Optical (RGB) & 0.3m & 4,639 & 4,644 \\
+RSIEval~\cite{hu2023rsgpt} & Various RGB & & 100 & 936 \\
+RSSA~\cite{pang2024h2rsvlm} & Various RGB & 0.08/153m & 1,400,000 & 46,642 \\
+VRSBench~\cite{li2024vrsbench} & Various RGB & & 29,614 & 52,472 \\
+SAR-VQA~\cite{cheng2025sartext} & SAR & 0.5/15m & 130,000 & 130,000 \\
+SARLANG-1M~\cite{wei2025sarlang} & SAR & 0.5/25m & 118,331 & 130,000 \\
+\hline
+\end{tabularx}
+\caption{Existing RSVQA datasets, adapted and updated from \cite{boussaidtosato2025tour}.}
+\label{tab:rw-vqa-datasets}
+\end{table}
+
+\subsection{Captioning datasets}
+\label{sec:rw-datasets-captioning}
+
+RS image captioning has attracted growing attention, with the number of publications in the area reported to have grown by nearly 50\% between 2023 and 2024 alone~\cite{zhang2024review}. Most existing datasets target high-resolution optical imagery. UCM-Captions and Sydney-Captions~\cite{qu2016exploring} were among the earliest, pairing small archives of aerial scenes (2,100 and 613 images respectively) with five human-written captions per image. RSICD~\cite{lu2017exploring} extended this to a larger and more diverse collection of 10,921 images and 54,605 captions gathered from Google Earth, Baidu Map, MapABC, and Tianditu. NWPU-Captions~\cite{cheng2022nwpu}, built on top of NWPU-RESISC45, remains the largest widely-used benchmark: 31,500 optical RGB images paired with 157,500 human-written captions (five per image), collected under an annotation protocol that enforces coverage of all prominent objects, discourages vague or purely directional phrasing, and requires syntactic diversity.
+
+Beyond full-sentence, single-image description, several datasets target more specialized settings. RSITMD~\cite{yuan2022exploring} provides keyword-level, fine-grained annotations for 4,743 images and is used primarily as a retrieval benchmark (Section~\ref{sec:rw-datasets-retrieval}). LEVIR-CC~\cite{liu2022remote} introduces change captioning, pairing 10,077 bi-temporal image pairs with five captions each describing meaningful changes (e.g. construction, deforestation) while explicitly ignoring illumination or seasonal variation. XLRS-Bench~\cite{wang2025xlrsbench} targets ultra-high-resolution imagery with a semi-automatic pipeline (GPT-4o draft captions refined by human annotators), yielding 934 long-form captions over 1,400 images.
+
+A distinct line of work targets SAR, which remains comparatively under-served. SAR Ship Captioning~\cite{zhao2022exploring} pairs 1,500 Sentinel-1/TerraSAR-X images with 3,000 human-written captions focused on ship presence and spatial context. SARLANG-1M~\cite{wei2025sarlang} and SAR-Text~\cite{cheng2025sartext} scale this up substantially (1M and over 130k images respectively) but rely on automatically generated captions (via BLIP/CLIP/GPT-4o for SARLANG-1M, via the SAR-Narrator pipeline for SAR-Text), and SAR-Text's medium-resolution subset is restricted to maritime scenes.
+
+Two limitations of this landscape motivate the most recent generation of datasets: the near-exclusive focus on optical-only or SAR-only imagery (rather than aligned multi-sensor pairs), and a reliance on synthetic or semi-automatic captions where human annotation would be preferable. RSGPT~\cite{hu2023rsgpt} introduced RSICap, a smaller (2,585 images) but richer human-annotated dataset targeting long-form, detailed descriptions suited to instruction-tuned VLMs rather than classical encoder-decoder captioners. At much larger scale, BigEarthNet.txt~\cite{herzog2026bigearthnettxt} pairs 464,044 co-registered Sentinel-1/Sentinel-2 image pairs with around 9.6 million text annotations (captions, VQA pairs, and referring expressions) generated through a template-plus-LLM-augmentation pipeline, with a smaller manually verified benchmark split. GAIA~\cite{zavras2026gaia} assembles 40,201 images across multiple sensors and resolutions with five GPT-4o-generated captions each, but each sample is single-modality rather than aligned multi-sensor pairs, and captions are fully synthetic. Most recently, Sentinel2Cap~\cite{tosato2026sentinel2cap} (from this thesis' research group) addresses this gap directly, providing 12,000 Sentinel-1 SAR / Sentinel-2 optical (RGB and multispectral) image patches with one fully human-written, QA/QC-verified caption each, to the authors' knowledge the first dataset offering human-written captions for jointly aligned SAR and optical imagery at medium resolution.
+
+Table~\ref{tab:rw-captioning-datasets} summarizes the main RS captioning datasets, with figures verified against the source papers.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l X c c c}
+\hline
+\textbf{Name} & \textbf{Modalities} & \textbf{Human-written} & \textbf{\# Images} & \textbf{Captions / img} \\
+\hline
+UCM-Captions~\cite{qu2016exploring} & Optical (RGB), 0.3m & Yes & 2,100 & 5 \\
+Sydney-Captions~\cite{qu2016exploring} & Optical (RGB) & Yes & 613 & 5 \\
+RSICD~\cite{lu2017exploring} & Optical (RGB), varied & Yes & 10,921 & 5 \\
+NWPU-Captions~\cite{cheng2022nwpu} & Optical (RGB), $\sim$0.256m & Yes & 31,500 & 5 \\
+RSITMD~\cite{yuan2022exploring} & Optical (RGB), 0.3-1m & Yes (keywords) & 4,743 & \\
+LEVIR-CC~\cite{liu2022remote} & Bi-temporal optical, 1024$\times$1024 & Yes & 10,077 pairs & 5 \\
+XLRS-Bench~\cite{wang2025xlrsbench} & Optical, ultra-high res & No (GPT-4o + human refine) & 1,400 & $\sim$0.7 \\
+RSICap~\cite{hu2023rsgpt} & Optical (RGB) & Yes & 2,585 & 1 \\
+SAR Ship Captioning~\cite{zhao2022exploring} & SAR (S1 / TerraSAR-X) & Yes & 1,500 & 2 \\
+SARLANG-1M~\cite{wei2025sarlang} & SAR + optical & No (BLIP/CLIP/GPT-4o) & 1M & $\ll$1 \\
+SAR-Text~\cite{cheng2025sartext} & SAR & No (SAR-Narrator pipeline) & $>$130,000 & 1 \\
+BigEarthNet.txt~\cite{herzog2026bigearthnettxt} & Optical + SAR (S2/S1), 10-20m & No (template + LLM) & 464,044 & $\sim$20+ \\
+GAIA~\cite{zavras2026gaia} & Multi-sensor, multi-scale & No (GPT-4o) & 40,201 & 5 \\
+Sentinel2Cap~\cite{tosato2026sentinel2cap} & Optical + SAR (S2/S1), 10-20m & Yes & 12,000 & 1 \\
+\hline
+\end{tabularx}
+\caption{Existing RS captioning datasets, with figures verified against Table I of \cite{tosato2026sentinel2cap} and the original source papers.}
+\label{tab:rw-captioning-datasets}
+\end{table}
+
+\subsection{Retrieval datasets}
+\label{sec:rw-datasets-retrieval}
+
+Cross-modal retrieval in RS was first framed as image-text retrieval: given a textual query, retrieve the matching image(s) from an archive, or conversely. Early benchmarks such as RSICD~\cite{lu2017exploring} and RSITMD~\cite{yuan2022exploring} repurpose captioning-style annotations for this task, pairing each image with several candidate captions and evaluating retrieval with recall@K metrics. UCM and Sydney captions have similarly been reused for retrieval benchmarking. PatternNet~\cite{zhou2018patternnet} instead targets image-to-image retrieval based on visual similarity of scene patterns.
+
+More recent work extends retrieval beyond static image-text pairs in two directions relevant to this thesis. The first is composed image retrieval (CIR), where the query combines a reference image with a textual modifier describing a desired attribute change. \textcite{psomas2024composed} introduce this task to RS with PATTERNCOM, a benchmark built on top of PatternNet (38 classes, 800 images per class at 256$\times$256px). PATTERNCOM covers six attribute types (color, context, density, existence, quantity, shape) over up to four classes each, with two to five values per class, yielding over 21,000 queries with between 2 and 1,345 positives per query. Alongside the benchmark, the authors propose WEICOM, a training-free method that fuses image-to-image and text-to-image similarities from a frozen VLM (CLIP or RemoteCLIP) via a modality control parameter $\lambda$, avoiding the need for supervised composed-retrieval triplets that are costly to annotate at scale. Follow-up work benchmarks composed retrieval specifically for applied EO use cases~\cite{efthymiadis2026benchmarking}. The second direction is temporal or change-aware retrieval, where the query concerns a bi-temporal pair of images rather than a single scene: self-supervised cross-modal text-image time series retrieval~\cite{vuran2025selfsupervised} moves retrieval toward the temporal setting that this thesis' CTCR-RS contribution targets, combining a bi-temporal image pair with a textual change description as the query -- effectively the temporal counterpart to PATTERNCOM's attribute-based composed query.
+
+Large-scale vision-language pretraining has also produced retrieval-oriented benchmarks as a side effect: RS5M and GeoRSCLIP~\cite{zhang2024rs5m}, RemoteCLIP~\cite{liu2024remoteclip}, and the more recent LRSCLIP~\cite{chen2025lrsclip} and DGTRS-CLIP~\cite{georsclip2025dgtrs} all report retrieval performance as a core evaluation of their alignment quality, even though their primary contribution is the pretrained encoder itself rather than a new dataset. This overlap between retrieval benchmarks and foundation-model evaluation is discussed further in Section~\ref{sec:rw-methods-foundation}.
+
+Table~\ref{tab:rw-retrieval-datasets} summarizes the main RS retrieval datasets and benchmarks, including the emerging composed and temporal retrieval settings.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l X c c}
+\hline
+\textbf{Name} & \textbf{Task / query type} & \textbf{Modalities} & \textbf{\# Images / pairs} \\
+\hline
+RSICD~\cite{lu2017exploring} & Image-text retrieval & Optical (RGB) & 10,921 \\
+RSITMD~\cite{yuan2022exploring} & Image-text retrieval (fine-grained) & Optical (RGB) & 4,743 \\
+PatternNet~\cite{zhou2018patternnet} & Image-image retrieval & Optical (RGB) & 30,400 \\
+PATTERNCOM~\cite{psomas2024composed} & Composed image retrieval (image + text) & Optical (RGB) & 21,000+ queries \\
+CTCR-RS (this thesis) & Composed temporal change retrieval (bi-temporal images + text) & Optical / SAR & 30,179 triplets \\
+\hline
+\end{tabularx}
+\caption{Existing RS retrieval datasets and benchmarks, positioned alongside CTCR-RS. Figures verified against the original papers.}
+\label{tab:rw-retrieval-datasets}
+\end{table}

@@ -111,17 +111,18 @@ and perspectives.
 
 \begin{figure}[ht]
     \centering
-    % NOTE: insert Figure 1 from the CVPRW 2025 paper here
-    % (summary of contributions: dataset example with 3 modalities
-    % side by side + MM-RSVQA model overview)
-    \includegraphics[width=\textwidth]{images/TAMMI/GraphAbstract.png}
-    \caption{Summary of contributions. TAMMI associates
+        \caption{Summary of contributions. TAMMI associates
     question/answer pairs to triplets of co-registered images
     (VHR orthophoto, Sentinel-2 multispectral, Sentinel-1 SAR).
     The white rectangle in the multispectral and SAR images
     indicates the geographic extent of the VHR patch. MM-RSVQA
     fuses features from all three modalities and the question
     through a transformer-based fusion module.}
+    % NOTE: insert Figure 1 from the CVPRW 2025 paper here
+    % (summary of contributions: dataset example with 3 modalities
+    % side by side + MM-RSVQA model overview)
+    \includegraphics[width=\textwidth]{images/TAMMI/GraphAbstract.png}
+
     \label{fig:chap5_contributions}
 \end{figure}
 
@@ -329,6 +330,11 @@ the debursting step on a Sentinel-1 SLC image.
 
 \begin{figure}[ht]
     \centering
+        \caption{Sentinel-1 SLC image before (a) and after (b)
+    the debursting procedure. The black bands separating
+    sequentially acquired bursts are removed and the burst
+    overlaps are resolved to produce a spatially continuous
+    image. Visualization uses a threshold of 233.}
     % NOTE: insert Figure 4 from the supplementary material here
     % Two images side by side: before and after debursting
     \begin{minipage}[t]{0.48\textwidth}
@@ -342,11 +348,7 @@ the debursting step on a Sentinel-1 SLC image.
         \includegraphics[width=\textwidth]{images/TAMMI/final_patch.png}
         \caption*{(b) Post-debursting}
     \end{minipage}
-    \caption{Sentinel-1 SLC image before (a) and after (b)
-    the debursting procedure. The black bands separating
-    sequentially acquired bursts are removed and the burst
-    overlaps are resolved to produce a spatially continuous
-    image. Visualization uses a threshold of 233.}
+
     \label{fig:chap5_deburst}
 \end{figure}
 \label{sec:chap5_triplets}
@@ -371,13 +373,14 @@ ranges, coastlines) and new question types
 
 \begin{figure}[ht]
     \centering
-    % NOTE: insert Figure 2 from the paper here (map of France
-    % with the three regions highlighted, plus VHR samples)
-    \includegraphics[width=0.6\textwidth]{images/TAMMI/GeoExtent.png}
-    \caption{Geographic extent of the TAMMI dataset, covering
+        \caption{Geographic extent of the TAMMI dataset, covering
     six departments across three contrasting regions of
     Metropolitan France: Île-de-France (75, 92, 93, 94, urban),
     Haute-Savoie (74, mountainous), and Hérault (34, maritime).}
+    % NOTE: insert Figure 2 from the paper here (map of France
+    % with the three regions highlighted, plus VHR samples)
+    \includegraphics[width=0.6\textwidth]{images/TAMMI/GeoExtent.png}
+
     \label{fig:chap5_geo}
 \end{figure}
 
@@ -388,12 +391,7 @@ the same geographic location.
 
 \begin{figure}[ht]
     \centering
-    % NOTE: insert Figure 1 from the earlier CVPR submission here
-    % (example triplet: VHR orthophoto / Sentinel-2 MS / Sentinel-1 SAR
-    % with white dotted rectangle showing VHR extent on MS and SAR,
-    % plus associated Q&A pairs)
-    \includegraphics[width=\textwidth]{images/TAMMI/CVPR_QA.png}
-    \caption{Example image triplet from the TAMMI dataset for
+        \caption{Example image triplet from the TAMMI dataset for
     a location in Paris. The VHR orthophoto (left) provides
     fine-grained spatial detail at 20\,cm resolution. The
     Sentinel-2 multispectral patch (center) and Sentinel-1
@@ -401,6 +399,12 @@ the same geographic location.
     coarser resolution; the white rectangle indicates the
     geographic extent of the VHR patch within each. Example
     question/answer pairs are shown on the right.}
+    % NOTE: insert Figure 1 from the earlier CVPR submission here
+    % (example triplet: VHR orthophoto / Sentinel-2 MS / Sentinel-1 SAR
+    % with white dotted rectangle showing VHR extent on MS and SAR,
+    % plus associated Q&A pairs)
+    \includegraphics[width=\textwidth]{images/TAMMI/CVPR_QA.png}
+
     \label{fig:chap5_triplet_example}
 \end{figure}
 
@@ -730,13 +734,14 @@ Figure~\ref{fig:chap5_arch}.
 % NOTE: insert Figure 3 from the paper here
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=\textwidth]{images/TAMMI/architecture.png}
-  \caption{Architecture of the MM-RSVQA model. Visual
+    \caption{Architecture of the MM-RSVQA model. Visual
   features are extracted from each modality independently,
   projected to a shared 768-dimensional space, and fused
   with textual features using VisualBERT. The fused
   representation is classified over the $k$ most frequent
   training answers.}
+  \includegraphics[width=0.85\textwidth]{images/TAMMI/architecture.png}
+
   \label{fig:chap5_arch}
 \end{figure}
 
@@ -1085,8 +1090,7 @@ Figure~\ref{fig:chap5_early_arch}.
     % segmentation-guided attention applied across all three
     % modalities; inputs in blue, outputs in red, ground truths
     % in green)
-    \includegraphics[width=\textwidth]{images/TAMMI/CVPR_Method.png}
-    \caption{Architecture of the earlier multimodal
+        \caption{Architecture of the earlier multimodal
     segmentation-guided attention model. Visual features are
     extracted from all three modalities using ResNet-50
     encoders pretrained on ImageNet. Attention weights are
@@ -1097,6 +1101,8 @@ Figure~\ref{fig:chap5_early_arch}.
     vocabulary. Compare with the final MM-RSVQA architecture
     (Figure~\ref{fig:chap5_arch}), which replaces this
     mechanism with VisualBERT-based transformer fusion.}
+    \includegraphics[width=0.85\textwidth]{images/TAMMI/CVPR_Method.png}
+
     \label{fig:chap5_early_arch}
 \end{figure}
 
@@ -1162,27 +1168,44 @@ M2 & \checkmark & \checkmark & \checkmark & &
 \end{table*}
 
 The most striking finding is that the Proposed model
-(Att + Seg, all three modalities) achieves lower OA
-(42.21\%) than ablation A1 (Att only, no Seg, OA =
-47.74\%) and is only marginally better than A2 (Seg
-only, no Att, OA = 37.20\%). Segmentation guidance,
-which improved performance by approximately 10 points
-in Chapter~\ref{chap:seg_attention}, actively hurts
-performance here.
+(VHR + MS + SAR, with Att + Seg) achieves a lower OA
+(42.21\%) than ablation A1, which uses the same
+Att + Seg mechanism but on the VHR modality alone
+(OA = 47.74\%). The same pattern holds for A2 (VHR + MS,
+OA = 37.20\%) and A3 (VHR + SAR, OA = 45.04\%): every
+single-modality or two-modality configuration that uses
+segmentation-guided attention outperforms the full
+three-modality configuration. In other words, under this
+architecture, \textit{adding} modalities beyond VHR
+consistently \textit{degrades} performance, despite
+segmentation-guided attention improving results by
+approximately 10 points when applied to VHR alone in
+Chapter~\ref{chap:seg_attention}. This is the central
+puzzle this section investigates: why does a mechanism
+that is beneficial for a single modality become harmful
+once extended to multiple modalities?
+
 
 \subsection{Analysis}
 \label{sec:chap5_seg_analysis}
-
-The failure of segmentation-guided attention in the
-multimodal setting cannot be attributed to a single cause.
-Rather, it reflects a convergence of several compounding
-issues, which we analyse below.
-
+ 
+Answering this question requires distinguishing two
+effects that the results above conflate: modalities that
+simply fail to contribute useful information, and a
+mechanism that actively propagates noise once those
+modalities are introduced. The three factors discussed
+first below are ordered by their causal contribution to
+this harmful effect; a fourth factor, the use of
+RGB-only multispectral input, is also examined and found
+to be a comparatively minor contributor once later
+results are taken into account.
+ 
 \textbf{Spatial resolution mismatch in attention
-transfer.} The most fundamental issue is the assumption
-that VHR segmentation attention can be meaningfully
-transferred to MS and SAR features by spatial downscaling.
-In Chapter~\ref{chap:seg_attention}, the segmentation map
+transfer} The core
+assumption of this architecture is that VHR segmentation
+attention can be meaningfully transferred to MS and SAR
+features by spatial downscaling. In
+Chapter~\ref{chap:seg_attention}, the segmentation map
 and the visual features it guides are spatially aligned at
 20\,cm resolution: each segmentation channel directly
 corresponds to the same spatial location in the VHR
@@ -1193,55 +1216,73 @@ MS features, this spatial correspondence is lost: a single
 MS feature vector aggregates information over an area
 $50\times$ to $100\times$ larger than the corresponding
 VHR attention cell. The downscaled attention map is
-therefore too coarse to provide meaningful spatial
-guidance over MS features, and the average-padding
-strategy used for regions outside the VHR extent adds
-further noise for the large portion of the MS/SAR patch
-that lies beyond the primary area of interest.
-
-\textbf{Inadequate encoder pretraining for MS and SAR.}
-In this earlier architecture, all three visual encoders
-use ResNet-50 pretrained on ImageNet, which was designed
-for natural RGB images. The MS encoder receives only the
-three RGB bands of Sentinel-2, discarding seven spectral
-bands that carry most of Sentinel-2's discriminative
-power. The SAR encoder applies ImageNet weights to
+therefore not merely uninformative but actively
+misleading: it imposes a confident, VHR-derived spatial
+weighting onto MS and SAR features for which that
+weighting has no valid semantic meaning, and the
+average-padding strategy used for regions outside the VHR
+extent compounds this by injecting a constant, contentless
+signal over the majority of the MS/SAR patch. This is the
+direct mechanism by which segmentation guidance turns from
+helpful (Chapter~\ref{chap:seg_attention}) to harmful
+(this section): the same operation that successfully
+sharpens attention on VHR features actively corrupts
+attention on features it was never designed to guide.
+ 
+\textbf{Inadequate encoder pretraining for MS and SAR} A well-conditioned
+MS or SAR feature map might in principle tolerate a
+mismatched attention signal by relying on the encoder's
+own spatial structure to compensate. In this earlier
+architecture, however, all three visual encoders use
+ResNet-50 pretrained on ImageNet, which was designed for
+natural RGB images. The MS encoder receives only the
+three RGB bands of Sentinel-2 and the SAR encoder applies ImageNet weights to
 backscatter amplitude values whose statistical
 distribution differs fundamentally from that of natural
-images. As a result, the MS and SAR feature maps
-$f_\text{MS}$ and $f_\text{SAR}$ are poorly conditioned:
-they do not represent semantically meaningful spatial
-structure that the segmentation-guided attention could
-exploit. This contrasts with the final MM-RSVQA model,
-where dedicated BigEarthNet-pretrained ResNet-50 encoders
-produce semantically richer representations of the
-satellite modalities.
-
-\textbf{Dataset size relative to model complexity.}
-The earlier model is trained on the partial TAMMI dataset
-(146,848 Q\&A pairs over 16,274 image triplets)
-while simultaneously supervising a segmentation auxiliary
-task and learning attention weights for three modalities.
-This represents a significantly higher number of
-trainable parameters per training sample than in
-Chapter~\ref{chap:seg_attention}, where segmentation
-guided attention for a single modality. The final
-MM-RSVQA model, trained on the full TAMMI dataset with
-3,162,514 Q\&A pairs (more than $20\times$ larger), is
-better positioned to support the additional parameters
-introduced by multimodal fusion.
-
-\textbf{RGB-only multispectral input.} Using only the
-RGB channels of Sentinel-2 largely negates the spectral
-advantage of multispectral imagery. Most of Sentinel-2's
-discriminative power for land cover and material
-classification lies in the NIR and SWIR bands, which are
-absent from the RGB-only configuration. This reduces the
-MS modality to a lower-resolution version of an RGB
-image, providing little complementary information beyond
-the VHR patch and limiting the potential benefit of the
-multimodal architecture.
-
+images. The resulting $f_\text{MS}$ and $f_\text{SAR}$
+feature maps are therefore themselves weakly structured,
+leaving little robust signal to fall back on once the
+misapplied attention map degrades them further. This
+contrasts with the final MM-RSVQA model, where dedicated
+BigEarthNet-pretrained ResNet-50 encoders produce
+semantically richer, better-structured representations of
+the satellite modalities.
+ 
+\textbf{Dataset size relative to model complexity} A
+sufficiently large training set could in principle allow
+the attention and fusion parameters to learn to discount
+the unreliable MS/SAR attention signal. The earlier model
+is trained on the partial TAMMI dataset (146,848 Q\&A
+pairs over 16,274 image triplets) while simultaneously
+supervising a segmentation auxiliary task and learning
+attention weights for three modalities, a significantly
+higher number of trainable parameters per training sample
+than in Chapter~\ref{chap:seg_attention}, where
+segmentation guided attention for a single modality. The
+final MM-RSVQA model, trained on the full TAMMI dataset
+with 3,162,514 Q\&A pairs (more than $20\times$ larger),
+is better positioned to support the additional parameters
+introduced by multimodal fusion, though this alone would
+not resolve the spatial mismatch described above.
+ 
+\textbf{RGB-only multispectral input.} A further
+difference from the final architecture is that this
+earlier version uses only the three RGB bands of
+Sentinel-2, rather than the full 10-band configuration
+adopted later. At first glance this might appear to limit
+the MS modality's potential contribution, since
+Sentinel-2's NIR and SWIR bands are known to carry
+material- and vegetation-specific information absent from
+RGB. However, the ablation study of
+Section~\ref{sec:chap5_discussion} later shows that, in
+the final MM-RSVQA architecture, the gap between RGB-only
+and full 10-band MS is in fact small (AA: 64.72 vs.\
+64.87). This suggests that the RGB-only configuration
+used here is unlikely to be a major contributor to the
+Proposed model's underperformance; the dominant factors
+remain the attention transfer mismatch and the encoder
+pretraining issues discussed above.
+ 
 \textbf{Lessons learned.} Taken together, these findings
 motivated three key changes in the final MM-RSVQA model.
 First, the segmentation-guided attention mechanism was
@@ -1251,16 +1292,32 @@ alignment between modalities and learns cross-modal
 interactions end-to-end. Second, dedicated
 BigEarthNet-pretrained encoders were adopted for MS and
 SAR, providing semantically appropriate feature
-representations for each modality. Third, 10
+representations for each modality. Third, the full 10
 spectral bands of Sentinel-2 were used, and the dataset
 was extended to 6 departments and 3.1 million Q\&A pairs
 to provide sufficient supervision for the multimodal
-fusion parameters. The improvement from AA = 44.41\% to
-AA = 65.56\% between the earlier architecture and the
-final MM-RSVQA model reflects the cumulative effect of
-these corrections.
+fusion parameters. It is worth noting that this comparison is not fully
+controlled: the earlier model was evaluated on the
+partial TAMMI dataset (4 departments, 9 question types),
+while MM-RSVQA was evaluated on the full TAMMI dataset
+(6 departments, 21 question types), whose taxonomy
+includes several high-accuracy question types (such as
+Region and Mountain Name, both above 99\%) that are
+absent from the earlier evaluation. The two AA figures
+are therefore not directly comparable as a measure of
+improvement. What the corrections above do support,
+independently of this difference in evaluation set, is
+the qualitative diagnosis itself: each identified issue
+(attention transfer mismatch, encoder pretraining,
+dataset scale, and spectral coverage) was addressed in
+the design of MM-RSVQA, and the ablation study of
+Section~\ref{sec:chap5_results} confirms that the final
+architecture's multimodal fusion does provide a
+consistent, measurable benefit over its own VHR-only
+baseline on the same evaluation set
+(Section~\ref{sec:chap5_discussion}).
 
-\section{Conclusion}
+\section{Conclusion and Limitations}
 \label{sec:chap5_conclusion}
 
 This chapter introduced two contributions to the
