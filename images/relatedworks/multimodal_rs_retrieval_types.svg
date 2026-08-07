@@ -1,0 +1,119 @@
+<svg width="680" height="573" viewBox="0 0 680 573" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<title>Four types of multimodal remote sensing retrieval</title>
+<desc>A diagram showing four retrieval types (image query, text-to-image, text-to-time-series, composed image+text query) each feeding into a shared retrieval module and producing retrieved satellite image results, with the time-series type shown as a sequence of images across time steps t1 to t4.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="#3d3d3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<rect x="0" y="0" width="680" height="573" fill="#ffffff"/>
+
+<!-- ============ TYPE 1 : CBIR ============ -->
+<text x="40" y="58" font-size="12" fill="#5f5e5a">Type 1 — CBIR</text>
+<rect x="40" y="68" width="180" height="55" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="130" y="87" font-size="14" font-weight="600" fill="#26215C" text-anchor="middle" dominant-baseline="central">Query image</text>
+<text x="130" y="108" font-size="12" fill="#3C3489" text-anchor="middle" dominant-baseline="central">CBIR: image → image</text>
+
+<!-- ============ TYPE 2 : Text-to-image ============ -->
+<text x="40" y="178" font-size="12" fill="#5f5e5a">Type 2 — text-to-image</text>
+<rect x="40" y="188" width="180" height="55" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="130" y="207" font-size="14" font-weight="600" fill="#04342C" text-anchor="middle" dominant-baseline="central">Text prompt</text>
+<text x="130" y="228" font-size="12" fill="#085041" text-anchor="middle" dominant-baseline="central">Text → image</text>
+
+<!-- ============ TYPE 3 : Text-to-time-series ============ -->
+<text x="40" y="298" font-size="12" fill="#5f5e5a">Type 3 — text-to-time-series</text>
+<rect x="40" y="308" width="180" height="55" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="130" y="327" font-size="14" font-weight="600" fill="#4A1B0C" text-anchor="middle" dominant-baseline="central">Text prompt</text>
+<text x="130" y="348" font-size="12" fill="#712B13" text-anchor="middle" dominant-baseline="central">Text → time series</text>
+
+<!-- ============ TYPE 4 : Composed query ============ -->
+<text x="40" y="418" font-size="12" fill="#5f5e5a">Type 4 — composed query</text>
+<rect x="40" y="428" width="180" height="65" rx="8" fill="#FBEAF0" stroke="#993556" stroke-width="0.5"/>
+<text x="130" y="450" font-size="14" font-weight="600" fill="#4B1528" text-anchor="middle" dominant-baseline="central">Reference image</text>
+<text x="130" y="472" font-size="12" fill="#72243E" text-anchor="middle" dominant-baseline="central">+ modification text</text>
+
+<!-- Arrows: input -> module -->
+<line x1="220" y1="96" x2="286" y2="96" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="220" y1="216" x2="286" y2="216" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="220" y1="336" x2="286" y2="336" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="220" y1="460" x2="286" y2="460" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ============ SHARED RETRIEVAL MODULE ============ -->
+<rect x="290" y="40" width="100" height="493" rx="16" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="340" y="212" font-size="14" font-weight="600" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">Retrieval</text>
+<text x="340" y="230" font-size="14" font-weight="600" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">module</text>
+<text x="340" y="268" font-size="12" fill="#444441" text-anchor="middle" dominant-baseline="central">Multimodal</text>
+<text x="340" y="284" font-size="12" fill="#444441" text-anchor="middle" dominant-baseline="central">embedding</text>
+<text x="340" y="300" font-size="12" fill="#444441" text-anchor="middle" dominant-baseline="central">space</text>
+<text x="340" y="328" font-size="12" fill="#444441" text-anchor="middle" dominant-baseline="central">+ sensor</text>
+<text x="340" y="344" font-size="12" fill="#444441" text-anchor="middle" dominant-baseline="central">data</text>
+<text x="340" y="360" font-size="12" fill="#444441" text-anchor="middle" dominant-baseline="central">archive</text>
+
+<!-- Arrows: module -> output -->
+<line x1="394" y1="96" x2="426" y2="96" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="394" y1="216" x2="426" y2="216" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="394" y1="336" x2="426" y2="336" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="394" y1="460" x2="426" y2="460" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ============ ROW 1 OUTPUT: retrieved images ============ -->
+<rect x="430" y="68" width="60" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="439,98 463,79 481,93 466,115 442,112" fill="#7FA84A"/>
+<line x1="433" y1="117" x2="487" y2="74" stroke="#9c9a92" stroke-width="0.75"/>
+<rect x="500" y="68" width="60" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="509,98 533,79 551,93 536,115 512,112" fill="#7FA84A"/>
+<line x1="503" y1="117" x2="557" y2="74" stroke="#9c9a92" stroke-width="0.75"/>
+<rect x="570" y="68" width="60" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="579,98 603,79 621,93 606,115 582,112" fill="#7FA84A"/>
+<line x1="573" y1="117" x2="627" y2="74" stroke="#9c9a92" stroke-width="0.75"/>
+<text x="530" y="139" font-size="12" fill="#5f5e5a" text-anchor="middle">Retrieved images</text>
+
+<!-- ============ ROW 2 OUTPUT: retrieved images ============ -->
+<rect x="430" y="188" width="60" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="439,218 463,199 481,213 466,235 442,232" fill="#7FA84A"/>
+<line x1="433" y1="237" x2="487" y2="194" stroke="#9c9a92" stroke-width="0.75"/>
+<rect x="500" y="188" width="60" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="509,218 533,199 551,213 536,235 512,232" fill="#7FA84A"/>
+<line x1="503" y1="237" x2="557" y2="194" stroke="#9c9a92" stroke-width="0.75"/>
+<rect x="570" y="188" width="60" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="579,218 603,199 621,213 606,235 582,232" fill="#7FA84A"/>
+<line x1="573" y1="237" x2="627" y2="194" stroke="#9c9a92" stroke-width="0.75"/>
+<text x="530" y="259" font-size="12" fill="#5f5e5a" text-anchor="middle">Retrieved images</text>
+
+<!-- ============ ROW 3 OUTPUT: retrieved image time series (t1 -> t4) ============ -->
+<rect x="430" y="308" width="40" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="444,340 452,326 460,332 456,344 446,342" fill="#7FA84A"/>
+<line x1="433" y1="352" x2="467" y2="318" stroke="#9c9a92" stroke-width="0.75"/>
+<rect x="478" y="308" width="40" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="489,344 500,322 512,330 505,349 492,346" fill="#7FA84A"/>
+<line x1="481" y1="352" x2="515" y2="318" stroke="#9c9a92" stroke-width="0.75"/>
+<rect x="526" y="308" width="40" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="534,347 548,320 562,329 552,352 538,349" fill="#7FA84A"/>
+<line x1="529" y1="352" x2="563" y2="318" stroke="#9c9a92" stroke-width="0.75"/>
+<rect x="574" y="308" width="40" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="580,349 596,318 612,328 600,354 584,351" fill="#7FA84A"/>
+<line x1="577" y1="352" x2="611" y2="318" stroke="#9c9a92" stroke-width="0.75"/>
+
+<line x1="470" y1="335" x2="478" y2="335" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="518" y1="335" x2="526" y2="335" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+<line x1="566" y1="335" x2="574" y2="335" stroke="#3d3d3a" stroke-width="1" marker-end="url(#arrow)"/>
+
+<text x="450" y="376" font-size="12" fill="#5f5e5a" text-anchor="middle">t1</text>
+<text x="498" y="376" font-size="12" fill="#5f5e5a" text-anchor="middle">t2</text>
+<text x="546" y="376" font-size="12" fill="#5f5e5a" text-anchor="middle">t3</text>
+<text x="594" y="376" font-size="12" fill="#5f5e5a" text-anchor="middle">t4</text>
+<text x="530" y="394" font-size="12" fill="#5f5e5a" text-anchor="middle">Retrieved image time series</text>
+
+<!-- ============ ROW 4 OUTPUT: retrieved images ============ -->
+<rect x="430" y="433" width="60" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="439,463 463,444 481,458 466,480 442,477" fill="#7FA84A"/>
+<line x1="433" y1="482" x2="487" y2="439" stroke="#9c9a92" stroke-width="0.75"/>
+<rect x="500" y="433" width="60" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="509,463 533,444 551,458 536,480 512,477" fill="#7FA84A"/>
+<line x1="503" y1="482" x2="557" y2="439" stroke="#9c9a92" stroke-width="0.75"/>
+<rect x="570" y="433" width="60" height="55" rx="4" fill="#DED1AE" stroke="#8a8a86" stroke-width="0.5"/>
+<polygon points="579,463 603,444 621,458 606,480 582,477" fill="#7FA84A"/>
+<line x1="573" y1="482" x2="627" y2="439" stroke="#9c9a92" stroke-width="0.75"/>
+<text x="530" y="504" font-size="12" fill="#5f5e5a" text-anchor="middle">Retrieved images</text>
+
+</svg>
