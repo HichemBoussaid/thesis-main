@@ -14,8 +14,10 @@
 \chapter{Segmentation-Guided Attention for Remote Sensing Visual Question Answering}
 \label{chap:seg_attention}
 \startcontents[chapters]
+
 \printmyminitoc{
 	%\lipsum[1]
+\textit{Chapter summary.} Standard RSVQA attention mechanisms compute attention weights directly from raw visual features, forcing the model to jointly discover relevant semantic categories and their spatial extent from supervision alone. This chapter instead guides attention with an explicit, multi-channel segmentation prior: a frozen UPerNet/Swin Transformer module, trained on 16 BD TOPO object classes, produces per-class spatial maps that condition attention jointly with the question. Evaluated on a preliminary TAMMI dataset over four Île-de-France departments, the proposed model improves overall accuracy by approximately 10\% over a no-attention baseline and 5\% over vanilla attention.
 }
 % ============================================================
 \section{Introduction}
@@ -53,7 +55,7 @@ in RSVQA operate directly on raw visual features, without
 any explicit semantic understanding of the scene content.
 In the context of remote sensing, where the visual appearance
 of object classes (roads, buildings, vegetation, water areas)
-is highly variable across regions and resolutions, this lack
+is highly variable across regions, this lack
 of semantic grounding limits the precision with which
 attention can localize the relevant content.
 
@@ -73,15 +75,27 @@ knowledge, however, this approach had not been explored in
 the remote sensing VQA literature at the time of this work.
 
 In this chapter, we propose to embed a segmentation-guided
-attention mechanism into a RSVQA pipeline. The segmentation
-is performed by a UPerNet model with a Swin Transformer
-backbone~\cite{liu2021swin}, trained on 16 object classes
-derived from the BD TOPO geographic
+attention mechanism into a RSVQA pipeline. A key original
+aspect of this design is the use of \textit{multi-channel}
+segmentation maps, one binary channel per object class,
+rather than the traditional single-channel segmentation in
+which each pixel receives a single class label. This choice
+is motivated by the frequent spatial overlap between object
+classes in remote sensing imagery (\textit{e.g.}, a road
+passing through a vegetation zone), which a single-channel
+representation cannot capture but which a multi-channel one
+represents naturally, as detailed in
+Section~\ref{sec:chap4_seg_multichannel}. The segmentation
+itself is performed by a UPerNet model with a Swin
+Transformer backbone~\cite{liu2021swin}, trained on 16
+object classes derived from the BD TOPO geographic
 database~\cite{bdtopo} and then kept frozen during VQA
-training. The resulting multi-channel segmentation maps are
-used to guide the computation of attention weights, providing
-the model with an explicit semantic prior over the spatial
-layout of the scene. We evaluate this approach on a new
+training. The resulting 16-channel segmentation maps are
+used to guide the computation of attention weights jointly
+with the question representation, providing the model with
+an explicit semantic prior over the spatial
+layout of the scene that raw visual features alone do not
+supply. We evaluate this approach on a new
 dataset built from very high resolution airborne imagery
 (BD ORTHO~\cite{bdortho}) over four
 departments of the Île-de-France region, which constitutes
@@ -111,7 +125,11 @@ limitations and perspectives.
 % vision-language architectures are in Ch. 2.
 % Ch. 3 already covered data augmentation and linguistic bias.
 % Here: attention in VQA, segmentation-guided vision, RSVQA attention.
-
+This section reviews the two bodies of work this chapter connects. 
+Section~\ref{sec:chap4_rw_attention} reviews attention mechanisms 
+in VQA generally and in RSVQA specifically, where attention is computed 
+directly from raw visual features. Section~\ref{sec:chap4_rw_seg} then reviews work that instead guides attention with an explicit 
+semantic segmentation prior, established in the natural image domain but, at the time of this work, unexplored in RSVQA.
 \subsection{Attention Mechanisms in Visual Question Answering}
 \label{sec:chap4_rw_attention}
 
@@ -119,12 +137,12 @@ Attention mechanisms were introduced in VQA to address a
 key limitation of early models, which represented an
 entire image with a single global feature vector,
 regardless of the question being asked.
-\cite{yang2016stacked} propose Stacked Attention
+\textcite{yang2016stacked} propose Stacked Attention
 Networks (SAN), which use the semantic representation of
 the question as a query to iteratively search for
 relevant image regions, performing multiple steps of
 attention to progressively refine the focus of the model.
-\cite{anderson2018bottomup} further refine this idea with
+\textcite{anderson2018bottomup} further refine this idea with
 a bottom-up and top-down attention mechanism, in which a
 bottom-up module (based on Faster R-CNN) proposes
 object-level image regions, while a top-down mechanism
@@ -134,12 +152,12 @@ became a standard component of VQA architectures, as it
 aligns naturally with the object-oriented phrasing of most
 questions.
 
-In the RSVQA setting, \cite{zheng2021mutual} propose a
+In the RSVQA setting, \textcite{zheng2021mutual} propose a
 mutual attention inception network that computes attention
 weights by modeling the alignment between spatial image
 positions and question words, using an inception-based
 visual backbone. This work demonstrates that attention
-improves performance on RSVQA benchmarks in a manner
+improves performance on RSVQA benchmarks, in a manner
 consistent with findings in the natural image domain.
 However, in the approaches discussed above,
 including those applied to remote sensing, attention
@@ -160,13 +178,13 @@ for any single question type is comparatively sparse.
 An alternative line of work proposes to decouple these two
 demands by providing the attention mechanism with an
 explicit semantic segmentation of the scene, computed as
-a separate task. \cite{gan2017vqs} introduce the VQS
+a separate task. \textcite{gan2017vqs} introduce the VQS
 dataset, which links segmentation annotations to
 question-answer pairs, and show that supervising attention
 with segmentation masks improves both VQA accuracy and
 the interpretability of the resulting attention maps, while
 also enabling question-focused semantic segmentation as a
-complementary output. \cite{wu2018faithful} pursue a
+complementary output. \textcite{wu2018faithful} pursue a
 related goal from the perspective of explainability,
 proposing a multimodal explanation framework in which
 segmentation-derived attention maps are used to generate
@@ -203,9 +221,7 @@ such a geographic database as an explicit semantic prior.
 The experiments in this chapter are conducted on a
 preliminary version of the TAMMI dataset, introduced in
 full in Chapter~\ref{chap:tammi}. We provide here a concise
-overview of the data used; the reader is referred to
-Chapter~\ref{chap:tammi} for a complete description of the
-dataset construction methodology, statistics, and splits.
+overview of the data used.
 
 The visual inputs consist of very high resolution (VHR)
 airborne RGB orthophotos from the BD ORTHO
@@ -280,7 +296,9 @@ spatial location. This allows overlapping object classes
 to be represented simultaneously, providing a richer and
 more faithful description of the scene layout. Concretely,
 the segmentation output $f_\text{seg} \in \mathbb{R}^{16
-\times H \times W}$ encodes the full spatial distribution
+\times H \times W}$, with $H = W = 1000$ matching the
+$1000 \times 1000$ pixel resolution of the input VHR patch
+$p_\text{VHR}$ (Section~\ref{sec:chap4_dataset_vhr}), encodes the full spatial distribution
 of all 16 classes over the image, which is then used
 directly to guide the attention computation.
 
@@ -290,7 +308,14 @@ directly to guide the attention computation.
 The segmentation module consists of a UPerNet
 architecture~\cite{xiao2018upernet} with a Swin
 Transformer backbone~\cite{liu2021swin}, pre-trained on
-the ADE20K dataset~\cite{zhou2019ade20k}. A convolutional
+the ADE20K dataset~\cite{zhou2019ade20k}, a large-scale
+semantic segmentation benchmark of roughly 25,000 natural
+images annotated with 150 object and stuff categories
+spanning indoor and outdoor scenes. While ADE20K's imagery
+and class taxonomy differ substantially from remote sensing,
+pre-training on it still provides the backbone with
+general-purpose visual features, rather than
+starting from randomly initialized weights. A convolutional
 layer is added to map the feature maps $f_\text{seg}$ to
 the 16-channel output, which is then bilinearly interpolated
 to the spatial resolution of the input patch $p_\text{VHR}$.
@@ -316,9 +341,17 @@ The dataset contains 146,848 question/answer pairs
 distributed across nine question types organized into
 four categories, summarized in Table~\ref{tab:chap4_qtypes}.
 Questions are generated automatically from the BD TOPO
-annotations following a procedure designed to balance both
-question type and answer type distributions, reducing
-language biases~\cite{chappuis2023curse}. The full
+annotations following a two-stage procedure designed to
+balance both question type and answer type distributions,
+reducing language biases~\cite{chappuis2023curse}. Question
+type is balanced first, by randomly generating ten questions
+per question type for each VHR patch $p_\text{VHR}$. Answer
+type is then balanced by defining, for each question type, a
+maximum number of questions per answer type, $N_{Q,A}$; only
+questions whose answer type is less represented than
+$N_{Q,A}$ are retained. To reach a sufficient number of
+questions under this filtering, the VHR patches are browsed
+twice. The full
 question generation methodology is described in
 Chapter~\ref{chap:tammi}.
 
@@ -334,11 +367,11 @@ are shown in parentheses.}
 \toprule
 \textbf{Category} & \textbf{Question types} \\
 \midrule
-Class questions & Presence (1a), Count (1b), Density (1c) \\
-Object questions & Absolute location (2a), Area (2b) \\
-Two-class questions & Comparison (3) \\
-Object relation questions & Relative location (4a), Distance (4b),
-                            Nearest object (4c) \\
+Class questions & Presence, Count, Density \\
+Object questions & Absolute location, Area \\
+Two-class questions & Comparison \\
+Object relation questions & Relative location, Distance,
+                            Nearest object \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -369,10 +402,10 @@ that are robust to linguistic bias.
 \end{figure}
 
 % ============================================================
-\section{Methodology}
+\section{Segmentation-Guided Attention Architecture}
 \label{sec:chap4_method}
 % ============================================================
-
+This section presents the proposed architecture in four parts: Section~\ref{sec:chap4_method_overview} gives a high-level overview of the full pipeline, Section~\ref{sec:chap4_method_features} details the frozen visual and textual feature extractors, Section~\ref{sec:chap4_method_attention} presents the segmentation-guided attention module itself, and Section~\ref{sec:chap4_method_prediction} describes the prediction head and training procedure.
 \subsection{Overview}
 \label{sec:chap4_method_overview}
 
@@ -388,7 +421,7 @@ illustrates the full architecture.
 
  \begin{figure}[ht]
    \centering
-   \includegraphics[width=\textwidth]{images/Seg/model1.png}
+   \includegraphics[width=\textwidth]{images/Seg/model1_1.png}
    \caption{Architecture of the proposed segmentation-guided
    attention pipeline. Inputs (VHR image and question) are
    shown in blue; outputs (answer prediction and segmentation)
@@ -410,11 +443,7 @@ backbone to compensate for the lack of semantic grounding,
 this work shows that even with a comparatively modest
 encoder, explicitly guiding attention with segmentation
 yields improvements. ResNet-50 remains a
-strong and widely-used baseline in its own right. This
-differs from the ResNet-152 backbone used in
-Chapter~\ref{chap:llm_augmentation}, reflecting the
-different focus of the two contributions data-centric
-augmentation vs.\ architectural attention\\
+strong and widely-used baseline in its own right.
 
 \textbf{Textual features.} Textual features $f_q$ are
 extracted from the question $q$ using a DistilBERT
@@ -504,7 +533,11 @@ and a batch size of 4. Training runs for approximately
 \section{Experimental Study}
 \label{sec:chap4_experiments}
 % ============================================================
-
+This section evaluates the proposed architecture in two stages. 
+Section~\ref{sec:chap4_seg_results} first evaluates the segmentation module on its own,
+ since the quality of the semantic prior it provides directly bounds what segmentation-guided attention can achieve downstream. 
+ Section~\ref{sec:chap4_vqa_results} then evaluates the full VQA pipeline against two ablations, 
+isolating the respective contributions of attention and of segmentation guidance specifically.
 \subsection{Segmentation Results}
 \label{sec:chap4_seg_results}
 
@@ -543,60 +576,40 @@ type accuracy, overall accuracy (OA), and average accuracy
 
 \begin{itemize}
     \item \textbf{Proposed}: full model with
-    segmentation-guided attention (Att~+~Seg);
+    segmentation-guided attention;
     \item \textbf{A1}: vanilla attention without
-    segmentation guidance (Att only);
-    \item \textbf{A2}: no attention mechanism (baseline).
+    segmentation guidance;
+    \item \textbf{A2}: no attention mechanism.
 \end{itemize}
 
-\begin{table*}[ht]
+\begin{table}[ht]
 \centering
 \small
+\begin{tabular}{l ccc}
+\toprule
+\multirow{2}{*}{\textbf{Question type}}
+  & \textbf{Proposed} & \textbf{A1} & \textbf{A2} \\
+  & (Attention + Segmentation) & (Attention only) & (No attention) \\
+\midrule
+Presence & \textbf{89.36} & 85.79 & 80.94 \\
+Count & \textbf{26.36} & 22.98 & 10.50 \\
+Density & \textbf{23.42} & 20.99 & 20.38 \\
+Absolute location & \textbf{14.61} & 13.82 & 12.96 \\
+Area & \textbf{56.98} & 44.69 & 40.94 \\
+Comparison & \textbf{93.08} & 82.94 & 74.00 \\
+Relative location & \textbf{13.76} & 11.91 & 13.41 \\
+Distance & \textbf{74.19} & 74.19 & 59.80 \\
+Nearest object & \textbf{17.21} & 15.60 & 13.44 \\
+\midrule
+Average Accuracy (AA) & \textbf{43.24} & 39.40 & 34.91 \\
+Overall Accuracy (OA) & \textbf{45.44} & 41.43 & 36.26 \\
+\bottomrule
+\end{tabular}
 \caption{VQA results for the proposed model and ablation
-studies. All values are accuracy percentages. Question
-type abbreviations follow Table~\ref{tab:chap4_qtypes}.
+studies. All values are accuracy percentages.
 Best results in \textbf{bold}.}
 \label{tab:chap4_results}
-\begin{tabularx}{\textwidth}{l cc
-    >{\centering\arraybackslash}X
-    >{\centering\arraybackslash}X
-    >{\centering\arraybackslash}X
-    >{\centering\arraybackslash}X
-    >{\centering\arraybackslash}X
-    >{\centering\arraybackslash}X
-    >{\centering\arraybackslash}X
-    >{\centering\arraybackslash}X
-    >{\centering\arraybackslash}X
-    >{\centering\arraybackslash}X
-    >{\centering\arraybackslash}X}
-\toprule
-\multirow{2}{*}{\textbf{Model}}
-  & \multicolumn{2}{c}{\textbf{Params}}
-  & \multicolumn{9}{c}{\textbf{Per-question accuracy}}
-  & \multicolumn{2}{c}{\textbf{Dataset}} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-12}\cmidrule(lr){13-14}
-& Att & Seg
-& 1a & 1b & 1c & 2a & 2b & 3 & 4a & 4b & 4c
-& AA & OA \\
-\midrule
-Proposed & \checkmark & \checkmark
-& \textbf{89.36} & \textbf{26.36} & \textbf{23.42}
-& \textbf{14.61} & \textbf{56.98} & \textbf{93.08}
-& \textbf{13.76} & \textbf{74.19} & \textbf{17.21}
-& \textbf{43.24} & \textbf{45.44} \\
-A1 & \checkmark &
-& 85.79 & 22.98 & 20.99
-& 13.82 & 44.69 & 82.94
-& 11.91 & 74.19 & 15.60
-& 39.40 & 41.43 \\
-A2 & &
-& 80.94 & 10.50 & 20.38
-& 12.96 & 40.94 & 74.00
-& 13.41 & 59.80 & 13.44
-& 34.91 & 36.26 \\
-\bottomrule
-\end{tabularx}
-\end{table*}
+\end{table}
 
 \subsection{Discussion}
 \label{sec:chap4_discussion}

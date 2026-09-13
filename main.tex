@@ -74,6 +74,7 @@
 {1ex}
 {\titlerule[1.5pt]\vspace*{1.5ex}\Huge\color{black}\textsc}
 []
+\titlespacing*{\chapter}{0pt}{0pt}{40pt}
 
 \titleformat{name=\chapter,numberless}[display]
 {\normalfont\color{black}}
@@ -213,7 +214,7 @@
 \fancyhead[LE]{\textsc{\chaptername~\thechapter}}
 
 
-\part{Introduction}
+%\part{Introduction}
 \input{Chapters/Introduction/RemoteSensingInformationAccess}
 \input{Chapters/Introduction/RelatedWorks.tex}
 %\input{Chapters/Introduction/Contributions.tex}
@@ -227,12 +228,12 @@
 
 
 %\part{Toward Multi-Task Synergies}
-%\input{Chapters/MULTITASK/QUEST.tex}
+\input{Chapters/MULTITASK/QUEST.tex}
 \input{Chapters/MULTITASK/CTCR-RS.tex}
 
 
-\part{Conclusion}
-\input{Chapters/conclusion.tex}
+%\part{Conclusion}
+%\input{Chapters/conclusion.tex}
 
 
 \printbibliography

@@ -5,8 +5,9 @@
 \startcontents[chapters]
 \printmyminitoc{
 	%\lipsum[1]
-}
+\textit{Chapter summary.} RSVQA models trained on automatically generated, template-based datasets learn to exploit surface-level linguistic patterns rather than robust visual understanding, and degrade sharply when questions are reformulated. This chapter addresses this generalization gap from a data-centric perspective: we use an instruction-tuned LLM (LLaMA-2-7B) to generate ten syntactically diverse, semantically equivalent reformulations of each question in RSVQA-HR, guided by a prompt selected through systematic evaluation of nine candidates. Compared against back translation, the proposed augmentation improves robustness to unseen phrasings while preserving in-distribution accuracy, establishing question diversity as an important concern in RSVQA training data.
 
+}
 
 %\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     %T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -41,7 +42,7 @@
 Despite growing interest in RSVQA, a fundamental limitation
 persists across existing approaches: poor generalization to unseen
 question formulations. Most RSVQA datasets are automatically
-generated from geospatial vectorial databases such as OpenStreetMap~\cite{openstreetmap}\cite{lobry2020rsvqa},
+generated from geospatial vectorial databases such as OpenStreetMap~\cite{osm}\cite{lobry2020rsvqa},
 which results in a limited set of question
 templates. Models trained on such data learn to exploit
 surface-level linguistic patterns rather than developing a robust
@@ -58,9 +59,11 @@ It is worth noting that this work was conducted at a time when
 RSVQA models predominantly relied on a dual-encoder
 architecture, a visual encoder such as ResNet~\cite{he2015deepresiduallearningimage} or a Vision
 Transformer~\cite{dosovitskiy2021imageworth16x16words})
-paired with a text encoder such as BERT~\cite{sanh2020distilbertdistilledversionbert},
- followed by a fusion module for answer prediction. In this
-paradigm, the model has no generative capacity and no world
+paired with a text encoder such as BERT~\cite{sanh2019distilbert},
+ followed by a fusion module, then classification for answer
+prediction over a fixed set of predefined answers. This
+paradigm does not itself forbid generative capacity, but in
+practice does not rely on autoregressive text generation: the model has no world
 knowledge beyond what is encoded in its training data, making
 it particularly sensitive to the linguistic distribution of the
 training questions. The recent shift toward large
@@ -72,7 +75,7 @@ sensing domain, and the challenge of linguistic generalization
 in RSVQA remained largely unaddressed. The contribution
 presented in this chapter should therefore be understood in
 this context: a targeted, data-centric approach to improve
-robustness within the then-dominant encoder-based RSVQA
+robustness within the then-dominant classification-based RSVQA
 framework.
  
 Data augmentation is a natural strategy to address this
@@ -114,7 +117,14 @@ guided by a prompt selected through systematic evaluation of
 nine candidates across questions of varying linguistic
 complexity. We compare this approach against back translation
 and evaluate both in terms of in-distribution performance and
-generalization to unseen question formulations.
+generalization to unseen question formulations. Our results
+show that LLM-based augmentation improves robustness to
+unseen phrasings substantially over both the original,
+non-augmented model and the back-translation baseline, while
+preserving in-distribution accuracy, indicating that the
+syntactic diversity of LLM-generated reformulations, rather
+than back translation's more limited variation, is what
+drives the generalization gain.
  
 The remainder of this chapter is organized as follows.
 Section~\ref{sec:chap3_rw} reviews related work on data
@@ -127,7 +137,7 @@ the chapter and discusses limitations and perspectives.
 
 \section{Related Work}
 \label{sec:chap3_rw}
-
+This section situates the proposed approach within three parts. Section~\ref{sec:chap3_rw_nlp} reviews data augmentation techniques developed in the general NLP literature, from rule-based token perturbation to back translation, which form a baseline this chapter compares against. Section~\ref{sec:chap3_rw_vqa} narrows this to VQA and RSVQA specifically, where language bias is a well-documented failure mode and augmentation has been explored, though not yet with LLM-based generation. Section~\ref{sec:chap3_rw_llm} then reviews the use of LLMs for paraphrasing and controlled text generation outside RSVQA, motivating the approach developed in this chapter.
 \subsection{Data Augmentation in Natural Language Processing}
 \label{sec:chap3_rw_nlp}
  
@@ -135,7 +145,7 @@ Data augmentation in NLP aims to increase training data
 diversity without new annotations, improving model
 robustness and reducing overfitting. Early work focused
 on simple rule-based token-level operations.
-\cite{wei2019eda} proposed Easy Data Augmentation (EDA),
+\textcite{wei2019eda} proposed Easy Data Augmentation (EDA),
 consisting of four lightweight operations: synonym
 replacement, random insertion, random swap, and random
 deletion, that improved performance on text
@@ -155,7 +165,7 @@ translation, offers a more principled alternative: a
 source sentence is translated into a pivot language and
 then back into the original, yielding a paraphrase that
 preserves meaning while introducing new surface forms.
-\cite{edunov2018backtranslation} later studied this
+\textcite{edunov2018backtranslation} later studied this
 approach at scale, confirming its benefits across
 generation tasks. However, back translation is
 constrained by the quality of the underlying translation
@@ -172,37 +182,46 @@ into training data.
 Language bias is a well-documented problem in VQA: models
 trained on datasets with skewed answer distributions
 learn to exploit statistical shortcuts in questions rather
-than performing genuine visual reasoning. Data augmentation
-has emerged as a primary strategy to mitigate this.
-\cite{gokhale2020seada} introduce Semantic Equivalent
+than performing genuine visual reasoning, and data
+augmentation has emerged as a primary strategy to expose
+models to more diverse question distributions and reduce
+this reliance.
+\textcite{gokhale2020seada} introduce Semantic Equivalent
 Adversarial Data Augmentation (SEADA), generating
 adversarial question paraphrases using syntactically
 controlled paraphrase networks, showing improved VQA
 robustness to linguistic variation.
-\cite{sheng2021contrastclassify} propose a contrastive
+\textcite{sheng2021contrastclassify} propose a contrastive
 training objective that explicitly encourages VQA
 representations to be invariant to question rephrasing,
 achieving gains on the VQA-Rephrasings benchmark which
 evaluates answer consistency across human-written
-paraphrases. \cite{chen2022rethinkingDA} propose KDDAug,
+paraphrases. \textcite{chen2022rethinkingDA} propose KDDAug,
 a knowledge distillation-based augmentation framework
 that generates new image-question pairs and assigns
 pseudo-answers via a teacher model, improving robustness
-across question types without human-designed rules.
+across question types without human-designed rules. Across these approaches, robustness is obtained either by
+generating harder paraphrases at training time or by
+explicitly regularizing the model toward paraphrase
+invariance; both directions assume a source of linguistic
+variation rich enough to be informative, an assumption
+that is far more difficult to satisfy in RS, where questions
+are automatically generated from a narrow set of templates
+rather than collected from human annotators.
  
 In the remote sensing domain specifically, the
 generalization problem is more severe than in standard
-VQA. \cite{chappuis2023curse} provide a systematic
+VQA. \textcite{chappuis2023curse} provide a systematic
 analysis through visual-blind models and adversarial
 testing, showing that RSVQA models rely heavily on
 linguistic shortcuts and that biases stem from the
 automatic and template-based question generation
 strategies used in existing RS datasets.
-\cite{yuan2023adversarial} address this from the model
+\textcite{yuan2023adversarial} address this from the model
 side, introducing an adversarial training framework with
 regularizers to reduce language bias in RSVQA.
 The most directly related augmentation work is that of
-\cite{yuan2023multilingual}, who apply back translation
+\textcite{yuan2023multilingual}, who apply back translation
 to RSVQA questions via Chinese, German, and French as
 pivot languages, combined with a contrastive learning
 strategy to train more robust representations. While
@@ -226,30 +245,34 @@ through natural language prompts to enforce specific
 constraints, making it
 particularly suited to the RSVQA augmentation setting.
  
-\cite{meng2022lmcppf} demonstrate that few-shot
+\textcite{meng2022lmcppf} demonstrate that few-shot
 paraphrasing with large language models such as GPT-3
 outperforms both EDA and back translation for
 augmentation in text classification, with stronger
 semantic fidelity in generated examples.
-\cite{dai2023llmaugsurvey} provide a comprehensive
+\textcite{dai2023llmaugsurvey} provide a comprehensive
 survey of LLM-based augmentation strategies, identifying
 paraphrasing, question generation, and counterfactual
 rewriting as the most impactful approaches, and
 highlighting the role of prompt design in controlling
-output quality. \cite{whitehouse2023llmcrosslingual}
+output quality. \textcite{whitehouse2023llmcrosslingual}
 further show that LLM-powered augmentation transfers
 effectively across languages and low-resource domains
-where back translation typically fails. These results
-collectively motivate our use of
-LLaMA-2~\cite{touvron2023llama2openfoundation} as the generation
-backbone: it offers strong instruction-following
-capabilities at a manageable scale (7B parameters),
-making it suitable for generating large volumes of
-question reformulations without the computational and
-financial cost of proprietary models such as GPT-4.
+where back translation typically fails. %These results
+%collectively motivate our use of
+%LLaMA-2~\cite{touvron2023llama2openfoundation} as the generation
+%backbone: it offers strong instruction-following
+%capabilities at a manageable scale (7B parameters),
+%making it suitable for generating large volumes of
+%question reformulations without the computational and
+%financial cost of proprietary models such as GPT-4.
  
+\subsection{Positioning of This Work}
+\label{sec:chap3_positioning}
+ 
+Within RS, \textcite{chappuis2023curse} diagnose language bias but do not propose a data-centric solution, and \textcite{yuan2023adversarial} address it from the model side through adversarial regularization rather than by enriching the training distribution. The most directly comparable prior work, \textcite{yuan2023multilingual}, does enrich the training distribution, but through back translation, which Section~\ref{sec:chap3_rw_nlp} showed remains structurally close to the original questions and degrades on RS-specific vocabulary. This chapter replaces back translation with instruction-tuned LLM generation as the augmentation source, and evaluates directly whether the resulting syntactic diversity translates into measurable robustness gains on unseen RSVQA phrasings, rather than assuming it does.
 
-\section{Methodology}
+\section{LLM-Based Question Reformulation for RSVQA}
 \label{sec:chap3_method}
 % ============================================================
  
@@ -259,7 +282,9 @@ The goal is to generate semantically equivalent
 reformulations of existing questions in order to expose
 RSVQA models to a wider variety of phrasings during
 training, thereby improving their robustness to unseen
-question formulations.
+question formulations. Figure~\ref{fig:pipeline} provides
+an overview of the full pipeline, detailed in the
+remainder of this section.
  
 \subsection{Problem Formulation}
 \label{sec:chap3_formulation}
@@ -322,18 +347,29 @@ However, their use raises concerns about reproducibility
 (outputs may change between API versions) and cost
 (generating augmented versions of a dataset with nearly
 one million question-answer pairs at API pricing is
-prohibitive). LLaMA-2 is fully open-source, runs
+prohibitive). LLaMA-2 has fully open-weights and runs
 locally.
  
 \subsection{Prompt Engineering}
 \label{sec:chap3_prompts}
- 
+ \begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{images/JURSE/pipeline.pdf}
+  \caption{Overview of the LLM-based data augmentation pipeline.
+  Unique questions from RSVQA-HR are grouped by difficulty and
+  passed to LLaMA-2-7B with the selected prompt $p_8$. Ten
+  reformulations are generated per question and added to the
+  augmented dataset. The example panel illustrates the four
+  possible evaluation outcomes for generated questions.}
+  \label{fig:pipeline}
+\end{figure}
 The quality of LLM-generated paraphrases is highly
 sensitive to the formulation of the input prompt. We
 designed a set of $k = 9$ distinct prompts
 $\mathcal{P} = \{p_1, p_2, \ldots, p_9\}$, each
 instructing the model to generate exactly 10 rephrased
-versions of a given question. The prompts were designed
+versions of a given question. The full set of prompts and their associated keywords
+is summarized in Table~\ref{tab:prompts}. The prompts were designed
 to explore different axes of variation:
  
 \begin{itemize}
@@ -363,8 +399,7 @@ to explore different axes of variation:
     a valid paraphrase.
 \end{itemize}
  
-The full set of prompts and their associated keywords
-is summarized in Table~\ref{tab:prompts}.
+
  
 \begin{table*}[!t]
   \centering
@@ -457,7 +492,7 @@ a significantly greater challenge for the model.
 For each of the 9 prompts, we manually evaluated the
 generated questions on a representative subset of
 questions from each difficulty level. Each generated
-question was classified as \textit{correct}
+question was manually classified as \textit{correct}
 (semantically equivalent to the original, same answer),
 \textit{borderline} (meaning slightly altered but
 arguably equivalent), or \textit{incorrect} (meaning
@@ -503,12 +538,12 @@ evaluation are presented in Table~\ref{tab:perf_prompts}.
     \cline{2-11}
     &Borderline & 2 & 3 & 0 & 3 & 6 & 3 & 3 & 7 & 1\\
     \cline{2-11}
-    &Accuracy (\%) & 38.3 & 48.3 & 1.7 & 26.7 & 30 & 55 & 58.3 & 63.3 & 35\\
+    &Qual (\%) & 38.3 & 48.3 & 1.7 & 26.7 & 30 & 55 & 58.3 & 63.3 & 35\\
     \hline
 
   \end{tabular}
   }
-  \caption{Performances of different prompts (p1–p9) (see Table \ref{tab:prompts}) in answering questions across Easy, Medium, and Hard complexities. The numbers represent correct/incorrect/borderline responses for each question.}
+  \caption{Performances of different prompts (p1–p9) (see Table \ref{tab:prompts}) in augmenting questions across Easy, Medium, and Hard complexities. The numbers represent correct/incorrect/borderline responses for each question.}
 
   \label{tab:perf_prompts}
 \end{table*}
@@ -525,7 +560,7 @@ correct generated questions across all difficulty levels.
 From this evaluation, prompt $p_8$ (\textit{``Rephrase
 the question \{question\} to ask about the same thing
 in exactly 10 different ways. New questions should have
-the same meaning.''}) achieved the highest accuracy
+the same meaning.''}) achieved the highest quality
 (63.3\%), followed by $p_7$ (58.3\%) and $p_6$ (55.0\%).
 Prompt $p_3$, which used Visual Question Answering
 framing and imposed no format constraints, performed
@@ -556,17 +591,6 @@ approximately 10 times larger than the original,
 with the same image-answer associations and a
 significantly richer distribution of question phrasings.
  
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=\textwidth]{images/JURSE/pipeline.pdf}
-  \caption{Overview of the LLM-based data augmentation pipeline.
-  Unique questions from RSVQA-HR are grouped by difficulty and
-  passed to LLaMA-2-7B with the selected prompt $p_8$. Ten
-  reformulations are generated per question and added to the
-  augmented dataset. The example panel illustrates the four
-  possible evaluation outcomes for generated questions.}
-  \label{fig:pipeline}
-\end{figure}
  
 It is important to note that no filtering step is
 applied to the generated questions beyond the prompt
@@ -586,10 +610,7 @@ on model performance is analyzed in Section~\ref{sec:chap3_results}.
 \begin{table}[ht]
 \centering
 \small
-\caption{Examples of questions generated from the original
-question \textit{``Are there more roads than parks?''}
-using prompt $p_8$, along with their manual evaluation.}
-\label{tab:generated_examples}
+
 \begin{tabular}{ll}
 \hline
 \textbf{Evaluation} & \textbf{Generated Question} \\
@@ -600,6 +621,10 @@ Borderline & Can you name more roads than parks? \\
 Incorrect  & Is the total distance of roads longer than the distance of parks? \\
 \hline
 \end{tabular}
+\caption{Examples of questions generated from the original
+question \textit{``Are there more roads than parks?''}
+using prompt $p_8$, along with their manual evaluation.}
+\label{tab:generated_examples}
 \end{table}
 
 
@@ -607,7 +632,11 @@ Incorrect  & Is the total distance of roads longer than the distance of parks? \
 \section{Experimental Study}
 \label{sec:chap3_experiments}
 % ============================================================
- 
+ This section evaluates whether the LLM-based augmentation pipeline introduced in 
+ Section~\ref{sec:chap3_method} improves robustness to unseen question phrasings without degrading in-distribution accuracy, 
+ and compares it directly against back translation, the closest prior approach. Section~\ref{sec:chap3_dataset} describes the RSVQA-HR benchmark used throughout. 
+ Section~\ref{sec:chap3_setup} details the models, training protocol, and the three evaluation splits used to isolate in-distribution performance from generalization to each augmentation strategy's own phrasings. 
+ Section~\ref{sec:chap3_results} then reports and analyzes the results, including a breakdown by question type and by cross-augmentation generalization.
 \subsection{Dataset: RSVQA-HR}
 \label{sec:chap3_dataset}
  
@@ -629,11 +658,11 @@ The dataset is divided into a training set
 (102,843 pairs), test set 1 (222,684 pairs, covering
 images similar in distribution to the training set),
 and test set 2 (covering a city not seen during
-training, used to evaluate geographic generalization).
-This structure makes RSVQA-HR particularly well-suited
-for evaluating generalization: test set 2 provides
-a natural out-of-distribution evaluation that goes
-beyond linguistic variation.
+training). RSVQA-HR's inclusion of test set 2 makes
+it well-suited to additionally support geographic
+generalization evaluation, going beyond the linguistic
+variation studied in this chapter; we leave this
+evaluation for future work.
  
 Following the augmentation procedure described in
 Section~\ref{sec:chap3_pipeline}, the LLM-augmented
@@ -667,9 +696,8 @@ architectural choices.
  
 \textbf{Training conditions.} We train three separate
 instances of this model on three different training
-sets: the original unaugmented dataset (Original),
-the LLM-augmented dataset (LLM-Aug), and the
-back-translation-augmented dataset (BT-Aug). All
+sets: the original unaugmented dataset (Original), our proposed LLM-augmented dataset (LLM-Aug), and the
+back-translation-augmented dataset (BT-Aug) \cite{yuan2023multilingual}. All
 other hyperparameters are kept identical across
 the three conditions to ensure that observed
 differences in performance are attributable solely
@@ -697,11 +725,7 @@ results for all three models across all three test sets.
 \begin{table*}[ht]
 \centering
 \footnotesize
-\caption{Performance comparison of Original, LLM-Aug, and
-BT-Aug models across different test sets. Accuracy (\%) per
-question type. Avg = average across the three test sets.
-Best per training condition in \textbf{bold}.}
-\label{tab:chap3_results}
+
 \begin{tabularx}{\textwidth}{
   l
   >{\centering\arraybackslash}X
@@ -721,7 +745,7 @@ Best per training condition in \textbf{bold}.}
 & \multicolumn{4}{c}{\textbf{Train: LLM-Aug}}
 & \multicolumn{4}{c}{\textbf{Train: BT-Aug}} \\
 \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
-\textbf{Type}
+\textbf{Set}
 & Orig & LLM & BT & Avg
 & Orig & LLM & BT & Avg
 & Orig & LLM & BT & Avg \\
@@ -753,6 +777,11 @@ Average
 & 69.62 & 53.89 & \textbf{68.35} & 63.95 \\
 \bottomrule
 \end{tabularx}
+\caption{Performance comparison of Original, LLM-Aug, and
+BT-Aug models across different test sets. Accuracy (\%) per
+question type. Avg = average across the three test sets.
+Best per training condition in \textbf{bold}.}
+\label{tab:chap3_results}
 \end{table*}
  
  
@@ -794,14 +823,14 @@ specific phrasings present in the training data and
 fails to generalize.
  
 \textbf{Question type analysis.}
-The area category shows the largest performance gap.
+The \textit{area} category shows the largest performance gap.
 The Original model drops from 81.45\% on the original
 test set to 23.75\% on the LLM-augmented test set.
 This is consistent with the difficulty grouping
-analysis in Section~\ref{sec:chap3_difficulty}: area
+analysis in Section~\ref{sec:chap3_difficulty}: \textit{area}
 questions tend to involve complex spatial descriptions
 that are hardest to paraphrase faithfully, meaning
-the LLM-generated area questions are the most
+the LLM-generated \textit{area} questions are the most
 linguistically distant from their originals. The
 count and comparison categories are more robust,
 likely because the core quantitative structure of

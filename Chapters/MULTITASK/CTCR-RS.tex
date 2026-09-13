@@ -1,6 +1,6 @@
 \chapter{CTCR-RS: Composed Temporal Change Retrieval in Remote Sensing}
 \label{chap:ctcr}
-\epigraph{\itshape  La volonté trouve, la liberté choisit. Trouver et choisir, c'est penser}{-- Victor Hugo}
+%\epigraph{\itshape  La volonté trouve, la liberté choisit. Trouver et choisir, c'est penser}{-- Victor Hugo}
 
 \startcontents[chapters]
 \printmyminitoc{
@@ -9,7 +9,7 @@
 
 % ============================================================
 \section{Introduction}
-\label{sec:chap6_intro}
+\label{sec:chap7_intro}
 % ============================================================
  
 The preceding chapters addressed the problem of extracting
@@ -53,7 +53,7 @@ Given a reference pair of bi-temporal images depicting an
 observed set of land-cover changes, and a textual instruction
 specifying additional changes to be composed with those
 already observed, the task is to retrieve target image pairs
-that exhibit the union of visual and textual changes (see Figure \ref{fig:chap6_task}). This
+that exhibit the union of visual and textual changes (see Figure \ref{fig:chap7_task}). This
 \textit{Composed Temporal Change Retrieval} (CTCR)
 formulation is inspired by Composed Image
 Retrieval~\cite{song2025survey}, which has demonstrated
@@ -135,17 +135,17 @@ that the problem is tractable, as a foundation for this
 broader research agenda.
  
 The remainder of this chapter is organized as follows.
-Section~\ref{sec:chap6_rw} reviews related work on composed
+Section~\ref{sec:chap7_rw} reviews related work on composed
 retrieval, bi-temporal change understanding, and
 vision-language models for Earth Observation.
-Section~\ref{sec:chap6_dataset} describes the CTCR-RS task
+Section~\ref{sec:chap7_dataset} describes the CTCR-RS task
 formalization and dataset construction pipeline.
-Section~\ref{sec:chap6_method} presents the UniCTCR and
-StageCTCR architectures. Section~\ref{sec:chap6_experiments}
+Section~\ref{sec:chap7_method} presents the UniCTCR and
+StageCTCR architectures. Section~\ref{sec:chap7_experiments}
 reports experimental results including ablation studies,
 complexity analysis, and qualitative examples.
-Section~\ref{sec:chap6_impact} discusses broader impact and
-ethical considerations. Section~\ref{sec:chap6_conclusion}
+Section~\ref{sec:chap7_impact} discusses broader impact and
+ethical considerations. Section~\ref{sec:chap7_conclusion}
 concludes with limitations and perspectives.
  
 \begin{figure}[ht]
@@ -160,12 +160,12 @@ concludes with limitations and perspectives.
     Removed) and a textual query specifying an additional
     change (Building Added), the system retrieves a target
     pair exhibiting all three changes.}
-    \label{fig:chap6_task}
+    \label{fig:chap7_task}
 \end{figure}
  
 % ============================================================
 \section{Related Work}
-\label{sec:chap6_rw}
+\label{sec:chap7_rw}
 % ============================================================
  
 The related work covered in Chapter~\ref{chap:background}
@@ -178,7 +178,7 @@ bi-temporal change understanding in remote sensing, and
 vision-language models adapted for Earth Observation.
  
 \subsection{Composed Image and Video Retrieval}
-\label{sec:chap6_rw_cir}
+\label{sec:chap7_rw_cir}
  
 Composed Image Retrieval (CIR) aims to retrieve a target
 image given a visual reference and a textual modifier that
@@ -224,7 +224,7 @@ video frames. %Adapting CoVR by spatially stacking $I_1$
 %paradigm transfer fails.
  
 \subsection{Bi-Temporal Change Understanding in Remote Sensing}
-\label{sec:chap6_rw_change}
+\label{sec:chap7_rw_change}
  
 Bi-temporal change understanding in remote sensing has been
 primarily approached through Change Detection (CD) and
@@ -256,7 +256,7 @@ combining a visual temporal reference with a textual
 modifier in a single composed query.
  
 \subsection{Vision-Language Models for Earth Observation}
-\label{sec:chap6_rw_vlm}
+\label{sec:chap7_rw_vlm}
  
 Cross-modal retrieval for Earth Observation has undergone
 significant progress through the adaptation of large
@@ -295,11 +295,11 @@ UniCTCR and StageCTCR.
 
 % ============================================================
 \section{The CTCR-RS Task and Dataset}
-\label{sec:chap6_dataset}
+\label{sec:chap7_dataset}
 % ============================================================
  
 \subsection{Task Formalization}
-\label{sec:chap6_task}
+\label{sec:chap7_task}
  
 Let $\mathcal{I} = (I_1, I_2)$ be a bi-temporal image pair
 depicting land-use and land-cover change between two
@@ -308,7 +308,7 @@ $\mathcal{L}(\mathcal{I}) = \{c_1, c_2, \ldots, c_n\}$ as
 the set of discrete semantic change labels present in the
 pair, where each $c_i$ belongs to a standardized ontology
 $\mathcal{O}$ described in
-Section~\ref{sec:chap6_ontology}.
+Section~\ref{sec:chap7_ontology}.
  
 A CTCR-RS query is defined as a tuple
 $(\mathcal{I}_\text{ref}, \mathcal{C}_\text{text})$, where
@@ -338,7 +338,7 @@ the exact same ground-truth change label set
 $\mathcal{L}(\mathcal{I}_\text{tar})$.
  
 \subsection{Source Datasets and Domain Scoping}
-\label{sec:chap6_sources}
+\label{sec:chap7_sources}
  
 The CTCR-RS dataset is constructed from two established
 change captioning datasets: LEVIR-CC~\cite{liu2022levir}
@@ -374,7 +374,7 @@ is critical for the robustness of the label extraction
 pipeline: redundant descriptions from multiple annotators
 allow the LLM to cross-validate change labels and reduce
 the impact of individual annotator errors or omissions, as
-discussed in Section~\ref{sec:chap6_audit}.
+discussed in Section~\ref{sec:chap7_audit}.
  
  
 A third publicly available dataset, RSCC~\cite{chen2025rscc},
@@ -392,7 +392,7 @@ rural change datasets is an explicit direction for future
 work.
  
 \subsection{Caption Synthesis and Label Extraction}
-\label{sec:chap6_extraction}
+\label{sec:chap7_extraction}
  
 The first challenge in constructing CTCR-RS is transforming
 the five heterogeneous, free-form human captions associated
@@ -482,7 +482,7 @@ of a transition, supporting compositional matching in
 retrieval.
  
 \subsection{Taxonomy and Change Ontology}
-\label{sec:chap6_ontology}
+\label{sec:chap7_ontology}
  
 The initial extraction pass produces normalized but still
 potentially inconsistent labels. A second pass with
@@ -553,14 +553,14 @@ Your task: review and correct ONLY the
     caption synthesis and label extraction (Stage~1),
     taxonomy normalization (Stage~2), quality control, and
     compositional triplet generation.}
-    \label{fig:chap6_pipeline}
+    \label{fig:chap7_pipeline}
 \end{figure}
  
 \subsection{Dataset Statistics and Characteristics}
-\label{sec:chap6_stats}
+\label{sec:chap7_stats}
  
 The CTCR-RS dataset comprises 30,179 unique compositional
-triplets. Figure~\ref{fig:chap6_stats} summarizes the key
+triplets. Figure~\ref{fig:chap7_stats} summarizes the key
 distributional properties.
  
 \begin{figure}[ht]
@@ -578,7 +578,7 @@ distributional properties.
     correlations. \textbf{Bottom}: change counts per triplet
     component, visualizing the subset-superset task
     formulation.}
-    \label{fig:chap6_stats}
+    \label{fig:chap7_stats}
 \end{figure}
  
 \textbf{Change frequency and bias mitigation.} The visual
@@ -594,10 +594,10 @@ more balanced distribution of text queries
 $\mathcal{C}_\text{text}$: less common change types are
 more frequently selected as the textual modifier, resulting
 in the orange distribution shown in
-Figure~\ref{fig:chap6_stats} (top left).
+Figure~\ref{fig:chap7_stats} (top left).
  
 \textbf{Change co-occurrence.} Building Added and Bareland
-Removed co-occur strongly (Figure~\ref{fig:chap6_stats},
+Removed co-occur strongly (Figure~\ref{fig:chap7_stats},
 top right), reflecting the predominant urban expansion
 pattern in the source datasets: new construction typically
 occurs on previously bare land. This strong co-occurrence
@@ -612,7 +612,7 @@ pair contains 3.2 simultaneous semantic changes. Notably,
 over 85.81\% of the triplets require the model to compose
 across three or more concurrent changes, a level of
 complexity that challenges all baseline architectures as
-shown in Section~\ref{sec:chap6_experiments}.
+shown in Section~\ref{sec:chap7_experiments}.
  
 \textbf{One-to-many mapping.} Unlike standard CIR, the
 CTCR-RS task is inherently one-to-many: multiple distinct
@@ -624,17 +624,17 @@ test set, where 9,275 samples concentrate across only 117
 unique compositions (compared to 298 in training). This
 property has two important implications. First, it motivates
 the Multiple Positives Enhanced NCE Loss described in
-Section~\ref{sec:chap6_unictr_training}, which encourages
+Section~\ref{sec:chap7_unictr_training}, which encourages
 the model to learn generalized land-cover transition
 representations rather than memorizing specific image
 instances. Second, it means that standard retrieval metrics
 computed against a single positive underestimate true
 performance; the evaluation protocol described in
-Section~\ref{sec:chap6_setup} accounts for all valid
+Section~\ref{sec:chap7_setup} accounts for all valid
 positives.
  
 \subsection{Compositional Triplet Generation}
-\label{sec:chap6_triplets}
+\label{sec:chap7_triplets}
  
 Retrieval triplets are constructed by exploiting the
 subset-superset relationship between change label sets.
@@ -655,12 +655,12 @@ plus [Extra Label(s)]''}. This ensures annotation precision
 and consistency across the dataset, at the cost of
 constraining the query to templated natural language rather
 than free-form instructions, a limitation acknowledged
-in Section~\ref{sec:chap6_conclusion}.
-See Figure~\ref{fig:chap6_pipeline} for a visual overview of
+in Section~\ref{sec:chap7_conclusion}.
+See Figure~\ref{fig:chap7_pipeline} for a visual overview of
 the full dataset curation pipeline.
 
 \subsection{Human Audit and Quality Validation}
-\label{sec:chap6_audit}
+\label{sec:chap7_audit}
  
 To ensure the fidelity of the extracted change labels, we
 conduct a rigorous manual audit on 600 stratified samples
@@ -679,10 +679,10 @@ captions, and 21 errors (3.5\%) stem from omissions or
 errors in the original change captions themselves.
  
 We provide examples of each outcome: LLM extraction
-successes (Figure~\ref{fig:chap6_audit_success}), LLM
-extraction misses (Figure~\ref{fig:chap6_audit_miss}),
+successes (Figure~\ref{fig:chap7_audit_success}), LLM
+extraction misses (Figure~\ref{fig:chap7_audit_miss}),
 and annotator errors and ambiguities
-(Figure~\ref{fig:chap6_audit_error}).
+(Figure~\ref{fig:chap7_audit_error}).
  
 \begin{figure}[ht]
     \centering
@@ -697,7 +697,7 @@ and annotator errors and ambiguities
     Removed. \textbf{Bottom (SECOND-CC)}: the LLM captures
     the distinct changes described by the annotators and maps
     them to the standard ontology.}
-    \label{fig:chap6_audit_success}
+    \label{fig:chap7_audit_success}
 \end{figure}
  
 \begin{figure}[ht]
@@ -713,7 +713,7 @@ and annotator errors and ambiguities
     the road was built on wasteland. \textbf{Bottom
     (SECOND-CC)}: Vegetation Added is extracted but Building
     Removed is dropped.}
-    \label{fig:chap6_audit_miss}
+    \label{fig:chap7_audit_miss}
 \end{figure}
  
 \begin{figure}[ht]
@@ -729,7 +729,7 @@ and annotator errors and ambiguities
     extracts both. \textbf{Bottom (SECOND-CC)}: temporal
     reversal: the images show a demolition but the
     annotators describe it as construction.}
-    \label{fig:chap6_audit_error}
+    \label{fig:chap7_audit_error}
 \end{figure}
  
 \textbf{LLM extraction misses (13.0\%).} These errors occur
@@ -761,7 +761,7 @@ difficulty in the source datasets rather than deficiencies
 in the curation pipeline.
  
 \subsection{Dataset Splitting}
-\label{sec:chap6_split}
+\label{sec:chap7_split}
  
 The dataset is partitioned at the bi-temporal image pair
 level \textit{prior} to triplet construction, yielding
@@ -775,13 +775,13 @@ triplets.
  
 % ============================================================
 \section{Methodology}
-\label{sec:chap6_method}
+\label{sec:chap7_method}
 % ============================================================
  
 To address the CTCR-RS task, we propose two complementary
 architectures that progressively move from end-to-end latent
 fusion to explicit semantic decomposition.
-Figure~\ref{fig:chap6_arch} provides an overview of both.
+Figure~\ref{fig:chap7_arch} provides an overview of both.
  
 \begin{figure}[ht]
     \centering
@@ -794,18 +794,18 @@ Figure~\ref{fig:chap6_arch} provides an overview of both.
     \textbf{Right}: StageCTCR decouples the task into
     VLM-based semantic composition (Stage~1, LLaVA-NeXT)
     and domain-adapted retrieval (Stage~2, RSICD-CLIP).}
-    \label{fig:chap6_arch}
+    \label{fig:chap7_arch}
 \end{figure}
  
 \subsection{UniCTCR}
-\label{sec:chap6_unictr}
+\label{sec:chap7_unictr}
  
 UniCTCR is an end-to-end architecture that learns a joint
 multi-modal change representation through dedicated fusion
 and composition modules.
  
 \subsubsection{Feature Extraction}
-\label{sec:chap6_unictr_features}
+\label{sec:chap7_unictr_features}
  
 Given a reference image pair $\mathcal{I} = (I_1, I_2)$
 and a query text $\mathcal{C}_\text{text}$, we extract
@@ -832,7 +832,7 @@ trainable parameters concentrated in the fusion and
 composition modules described below.
  
 \subsubsection{Bi-Temporal Fusion}
-\label{sec:chap6_unictr_fusion}
+\label{sec:chap7_unictr_fusion}
  
 To aggregate the temporal information from $(v_1, v_2)$
 into a unified semantic change representation
@@ -861,7 +861,7 @@ principle identify which spatial regions changed and reason
 about the nature of the change, rather than operating on
 global embeddings alone.
  
-%Our ablation study (Table~\ref{tab:chap6_fusion}) shows
+%Our ablation study (Table~\ref{tab:chap7_fusion}) shows
 %that Concatenation achieves the highest global performance,
 %marginally outperforming Subtraction and Cross-Attention.
 %The narrow spread between the three strategies (less than
@@ -870,7 +870,7 @@ global embeddings alone.
 %quality, which is the dominant bottleneck in this task.
  
 \subsubsection{Multi-Modal Composition}
-\label{sec:chap6_unictr_composition}
+\label{sec:chap7_unictr_composition}
  
 To fuse $v_\text{change}$ with the textual modification
 $t$, we concatenate them into a joint representation
@@ -899,7 +899,7 @@ the textual query requests.
 %available data.
  
 \subsubsection{Target Encoding and Auxiliary Objective}
-\label{sec:chap6_unictr_target}
+\label{sec:chap7_unictr_target}
  
 Candidate target pairs $(I_1', I_2')$ in the retrieval
 database are processed through the identical RemoteCLIP
@@ -917,7 +917,7 @@ semantically meaningful change representations before the
 composition module operates on them.
  
 \subsubsection{Training Objectives}
-\label{sec:chap6_unictr_training}
+\label{sec:chap7_unictr_training}
  
 To address the one-to-many mapping property of the
 CTCR-RS task, UniCTCR is trained with a composite
@@ -951,9 +951,9 @@ UniCTCR is trained with AdamW, learning rate $5 \times
 for 40 epochs.
  
 \subsection{StageCTCR}
-\label{sec:chap6_stagectcr}
+\label{sec:chap7_stagectcr}
  
-Motivated by the oracle analysis of UniCTCR (see Table \ref{tab:chap6_fusion}), which reveals
+Motivated by the oracle analysis of UniCTCR (see Table \ref{tab:chap7_fusion}), which reveals
 that the primary bottleneck lies in multi-modal composition
 rather than retrieval, StageCTCR explicitly decomposes the
 problem into two independent stages: semantic change
@@ -963,7 +963,7 @@ with the explicit reasoning capabilities of a pretrained
 VLM.
  
 \subsubsection{Stage 1: Semantic Change Composition}
-\label{sec:chap6_stage1}
+\label{sec:chap7_stage1}
  
 The first stage employs LLaVA-NeXT~\cite{liu2024llavanext}
 as a semantic change composition engine. Given the textual
@@ -991,7 +991,7 @@ scaling factor $\alpha = 128$, dropout 0.05, fine-tuned for
 AdamW~\cite{adamw}.
  
 \subsubsection{Stage 2: Domain-Adapted Retrieval}
-\label{sec:chap6_stage2}
+\label{sec:chap7_stage2}
  
 The second stage is a dedicated retrieval backbone. A CLIP
 model pretrained on RSICD~\cite{lu2017exploring} is
@@ -1015,11 +1015,11 @@ $10^{-4}$ with AdamW.
  
 % ============================================================
 \section{Experimental Study}
-\label{sec:chap6_experiments}
+\label{sec:chap7_experiments}
 % ============================================================
  
 \subsection{Experimental Setup}
-\label{sec:chap6_setup}
+\label{sec:chap7_setup}
  
 \textbf{Evaluation metrics.} We report standard retrieval
 metrics: Recall at $k$ (R@1, R@5, R@10, R@20), Median
@@ -1060,7 +1060,7 @@ zero-shot and after fine-tuning on CTCR-RS.
  
 \subsection{UniCTCR: Ablation of Fusion Strategies and
 Composition Heads}
-\label{sec:chap6_unictr_results}
+\label{sec:chap7_unictr_results}
 \textbf{Fusion strategy.} Concatenation achieves the
 highest global performance (R@1 = 0.24, mAP@5 = 0.66),
 marginally outperforming Subtraction (0.23 R@1) and
@@ -1101,7 +1101,7 @@ composition heads for UniCTCR. \textbf{Global} reports
 results on the full test set; subsequent rows stratify by
 text and visual complexity. Best non-oracle R@1 result per
 complexity level in \textbf{bold}.}
-\label{tab:chap6_fusion}
+\label{tab:chap7_fusion}
 \resizebox{0.85 \textwidth}{!}{
 \begin{tabularx}{\textwidth}{ll
     >{\centering\arraybackslash}X
@@ -1161,14 +1161,14 @@ complexity level in \textbf{bold}.}
 
 
 \subsection{StageCTCR: Decomposed Retrieval}
-\label{sec:chap6_stagectcr_results}
+\label{sec:chap7_stagectcr_results}
 \begin{table}[htb]
 \centering
 \footnotesize
 \caption{StageCTCR performance and error analysis across
 complexity levels. \textbf{GT+CLIP} replaces LLaVA-NeXT
 predictions with ground-truth labels to isolate Stage~2.}
-\label{tab:chap6_stagectcr}
+\label{tab:chap7_stagectcr}
 \begin{tabularx}{\textwidth}{ll
     >{\centering\arraybackslash}X
     >{\centering\arraybackslash}X
@@ -1221,7 +1221,7 @@ wrong semantic cluster.
  
 \textbf{Stage 1 vs. Stage 2 decomposition.} Replacing
 LLaVA-NeXT predictions with ground-truth labels (GT+CLIP,
-Table~\ref{tab:chap6_stagectcr}) yields R@1 = 0.41, an 8\% gap that isolates Stage~1 errors. This
+Table~\ref{tab:chap7_stagectcr}) yields R@1 = 0.41, an 8\% gap that isolates Stage~1 errors. This
 gap confirms that semantic composition is still a limiting
 factor even for a strong VLM. Comparing GT+CLIP (0.41) to
 UniCTCR's Text-Only Oracle (0.30) shows that CLIP's
@@ -1232,14 +1232,14 @@ are attributable to the CLIP backbone, not just the
 explicitly structured input format.
  
 \subsection{Comparison with Existing Methods}
-\label{sec:chap6_comparison}
+\label{sec:chap7_comparison}
  
 \begin{table}[htb]
 \centering
 \footnotesize
 \caption{Summary comparison of existing methods, proposed
 approaches, and oracle upper bounds.}
-\label{tab:chap6_comparison}
+\label{tab:chap7_comparison}
 \begin{tabularx}{\textwidth}{l
     >{\centering\arraybackslash}X
     >{\centering\arraybackslash}X
@@ -1296,7 +1296,7 @@ that the performance gap between UniCTCR and StageCTCR is
 architectural rather than encoder-driven.
  
 \subsection{Complexity Analysis}
-\label{sec:chap6_complexity}
+\label{sec:chap7_complexity}
  
 \textbf{Text Query Complexity.} Performance improves with
 more text changes: StageCTCR achieves 0.31 R@1 for
@@ -1325,7 +1325,7 @@ single-vector global representations and motivates future
 work on patch-level or change-specific encoding strategies.
  
 \subsection{Qualitative Results}
-\label{sec:chap6_qualitative}
+\label{sec:chap7_qualitative}
  
 \begin{figure}[ht]
     \centering
@@ -1341,7 +1341,7 @@ work on patch-level or change-specific encoding strategies.
     1, 2, 4), while UniCTCR retrieves pairs that omit
     specific changes. LLaVA-NeXT correctly predicts the full
     change set.}
-    \label{fig:chap6_qual_success}
+    \label{fig:chap7_qual_success}
 \end{figure}
  
 \begin{figure}[ht]
@@ -1358,12 +1358,12 @@ work on patch-level or change-specific encoding strategies.
     retrieved pair is still correct (likely due to strong
     visual similarity), subsequent results lack the
     Vegetation Removed attribute.}
-    \label{fig:chap6_qual_failure}
+    \label{fig:chap7_qual_failure}
 \end{figure}
  
-Figure~\ref{fig:chap6_qual_success} illustrates a success
+Figure~\ref{fig:chap7_qual_success} illustrates a success
 case in which StageCTCR outperforms UniCTCR due to its
-explicit compositional reasoning. Figure~\ref{fig:chap6_qual_failure}
+explicit compositional reasoning. Figure~\ref{fig:chap7_qual_failure}
 illustrates the cascading failure mode of StageCTCR: a
 single missed label in Stage~1 propagates to Stage~2,
 where retrieval is steered toward a slightly incorrect
@@ -1373,11 +1373,11 @@ similarity between matching image pairs.
  
 % ============================================================
 \section{Broader Impact and Ethical Considerations}
-\label{sec:chap6_impact}
+\label{sec:chap7_impact}
 % ============================================================
  
 \subsection{Operational Value}
-\label{sec:chap6_impact_value}
+\label{sec:chap7_impact_value}
  
 The CTCR-RS task addresses a genuine bottleneck in
 operational Earth Observation workflows. Analysts monitoring
@@ -1410,7 +1410,7 @@ developing encoders capable of disentangling dense
 multi-class change signatures.
  
 \subsection{Dual-Use Risks}
-\label{sec:chap6_impact_risks}
+\label{sec:chap7_impact_risks}
  
 Retrieval systems capable of identifying specific land-cover
 changes at scale are not without risk. The same capability
@@ -1427,7 +1427,7 @@ global archives amplifies this risk by reducing the
 expertise and time required to locate areas of interest.
  
 \subsection{Geographic Bias}
-\label{sec:chap6_impact_bias}
+\label{sec:chap7_impact_bias}
  
 The CTCR-RS dataset inherits the geographic biases of its
 source datasets, LEVIR-CC and SECOND-CC, which predominantly
@@ -1449,7 +1449,7 @@ translate equitably across global geographies.
  
 % ============================================================
 \section{Conclusion and Limitations}
-\label{sec:chap6_conclusion}
+\label{sec:chap7_conclusion}
 % ============================================================
  
 This chapter introduced Composed Temporal Change Retrieval
