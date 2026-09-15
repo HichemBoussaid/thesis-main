@@ -209,14 +209,15 @@ series = {ACL '01}
   publisher = {Institut national de l'information géographique et forestière},
   year = {2026}
 }
-@article{touvron2023llama2openfoundation,
-  author       = {H. Touvron et al.},
-  title        = {Llama 2: Open Foundation and Fine-Tuned Chat Models},
-  journal      = {CoRR},
-  volume       = {abs/2307.09288},
-  year         = {2023},
-  eprinttype    = {arXiv},
-  eprint       = {2307.09288},
+
+@misc{touvron2023llama2openfoundation,
+      title={Llama 2: Open Foundation and Fine-Tuned Chat Models}, 
+      author       = {H. Touvron and others},
+      year={2023},
+      eprint={2307.09288},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2307.09288}, 
 }
 @misc{sanh2019distilbert,
       title={DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter}, 
@@ -708,13 +709,19 @@ series = {ACL '01}
    url       = {https://arxiv.org/abs/2010.06087}
  }
 
- @inproceedings{chen2022rethinkingDA,
-   author    = {Chen, Long and Zheng, Yuhang and Xiao, Jun},
-   title     = {Rethinking Data Augmentation for Robust Visual Question Answering},
-   booktitle = {ECCV},
-   year      = {2022},
-   url       = {https://arxiv.org/abs/2207.08739}
- }
+
+@InProceedings{chen2022rethinkingDA,
+author="Chen, Long
+and Zheng, Yuhang
+and Xiao, Jun",
+title="Rethinking Data Augmentation for Robust Visual Question Answering",
+booktitle="Computer Vision -- ECCV 2022",
+year="2022",
+publisher="Springer Nature Switzerland",
+address="Cham",
+pages="95--112",
+}
+
 
  @article{chappuis2023curse,
    author  = {Chappuis, Christel and Walt, Eliot and Mendez, Vincent
@@ -749,15 +756,29 @@ series = {ACL '01}
    url       = {https://aclanthology.org/2023.acl-short.59/}
  }
 
- @article{dai2023llmaugsurvey,
-   author  = {Dai, Bosheng and others},
-   title   = {Data Augmentation using {LLMs}: Data Perspectives,
-              Learning Paradigms and Challenges},
-   journal = {CoRR},
-   volume  = {abs/2403.02990},
-   year    = {2024},
-   url     = {https://arxiv.org/abs/2403.02990}
- }
+ @inproceedings{dai2023llmaugsurvey,
+    title = "Data Augmentation using {LLM}s: Data Perspectives, Learning Paradigms and Challenges",
+    author = "Ding, Bosheng  and
+      Qin, Chengwei  and
+      Zhao, Ruochen  and
+      Luo, Tianze  and
+      Li, Xinze  and
+      Chen, Guizhen  and
+      Xia, Wenhan  and
+      Hu, Junjie  and
+      Luu, Anh Tuan  and
+      Joty, Shafiq",
+    editor = "Ku, Lun-Wei  and
+      Martins, Andre  and
+      Srikumar, Vivek",
+    booktitle = "Findings of the Association for Computational Linguistics: ACL 2024",
+    year = "2024",
+
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.findings-acl.97/",
+    doi = "10.18653/v1/2024.findings-acl.97",
+    pages = "1679--1705",
+}
 
  @inproceedings{whitehouse2023llmcrosslingual,
    author    = {Whitehouse, Chenxi and others},
@@ -1147,13 +1168,15 @@ series = {ACL '01}
   url     = {https://ieeexplore.ieee.org/document/10891793}
 }
 
+
 @misc{chen2025rscc,
-  author = {Chen, Zhenyuan and Wang, Chenxi and Zhang, Ningyu
-            and Zhang, Feng},
-  title  = {{RSCC}: A Large-Scale Remote Sensing Change Caption
-            Dataset for Disaster Events},
-  year   = {2025},
-  url    = {https://arxiv.org/abs/2501.18484}
+      title={RSCC: A Large-Scale Remote Sensing Change Caption Dataset for Disaster Events},
+      author={Zhenyuan Chen and Chenxi Wang and Ningyu Zhang and Feng Zhang},
+      year={2025},
+      eprint={2509.01907},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2509.01907},
 }
 
 @misc{gemma2025,
@@ -1350,18 +1373,18 @@ series = {ACL '01}
   url    = {https://arxiv.org/abs/2406.10079}
 }
 
-@inproceedings{cheng2021deep,
-  author    = {Cheng, Qimin and Zhou, Yuzhuo and Fu, Peng and Xu,
-               Yuan and Zhang, Liang},
-  title     = {A Deep Semantic Alignment Network for the
-               Cross-Modal Image-Text Retrieval in Remote Sensing},
-  journal   = {IEEE Journal of Selected Topics in Applied Earth
-               Observations and Remote Sensing},
-  volume    = {14},
-  pages     = {4284--4297},
-  year      = {2021},
-  url       = {https://ieeexplore.ieee.org/document/9406224}
-}
+
+@ARTICLE{cheng2021deep,
+  author={Cheng, Qimin and Zhou, Yuzhuo and Fu, Peng and Xu, Yuan and Zhang, Liang},
+  journal={IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing}, 
+  title={A Deep Semantic Alignment Network for the Cross-Modal Image-Text Retrieval in Remote Sensing}, 
+  year={2021},
+  volume={14},
+  number={},
+  pages={4284-4297},
+  keywords={Remote sensing;Feature extraction;Semantics;Visualization;Task analysis;Sensors;Convolutional neural networks;Convolutional neural network (CNN);cross-modal remote sensing image-text retrieval;recurrent neural network (RNN);semantic alignment},
+  doi={10.1109/JSTARS.2021.3070872}}
+
 @article{RSITMD,
    title={Exploring a Fine-Grained Multiscale Method for Cross-Modal Remote Sensing Image Retrieval},
    volume={60},
@@ -1400,28 +1423,36 @@ series = {ACL '01}
   year   = {2019},
   url    = {https://arxiv.org/abs/1711.05101}
 }
- @inproceedings{deng2025changechat,
-  author    = {Deng, Pei and Zhou, Wei and Wu, Hao},
-  title     = {{ChangeChat}: An Interactive Model for Remote
-               Sensing Change Analysis via Multimodal Instruction
-               Tuning},
-  booktitle = {ICASSP},
-  year      = {2025},
-  url       = {https://arxiv.org/abs/2409.08582}
-}
 
-@article{deng2026deltavlm,
-  author  = {Deng, Pei and Zhou, Wei and Wu, Hao},
-  title   = {{DeltaVLM}: Interactive Remote Sensing Image Change
-             Analysis via Instruction-guided Difference Perception},
-  journal = {Remote Sensing},
-  volume  = {18},
-  number  = {4},
-  pages   = {541},
-  year    = {2026},
-  url     = {https://arxiv.org/abs/2507.22346}
-}
+@INPROCEEDINGS{deng2025changechat,
+  author={Deng, Pei and Zhou, Wenqian and Wu, Hanlin},
+  booktitle={ICASSP 2025 - 2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 
+  title={ChangeChat: An Interactive Model for Remote Sensing Change Analysis via Multimodal Instruction Tuning}, 
+  year={2025},
+  volume={},
+  number={},
+  pages={1-5},
+  keywords={Location awareness;Analytical models;Codes;Natural languages;Signal processing;Speech processing;Tuning;Remote sensing;Monitoring;Context modeling;Vision-language models;interactive change analysis;change captioning;instruction tuning},
+  doi={10.1109/ICASSP49660.2025.10890620}}
 
+@misc{deng2024changechatinteractivemodelremote,
+      title={ChangeChat: An Interactive Model for Remote Sensing Change Analysis via Multimodal Instruction Tuning}, 
+      author={Pei Deng and Wenqian Zhou and Hanlin Wu},
+      year={2024},
+      eprint={2409.08582},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2409.08582}, 
+}
+@misc{deng2025deltavlminteractiveremotesensing,
+      title={DeltaVLM: Interactive Remote Sensing Image Change Analysis via Instruction-guided Difference Perception}, 
+      author={Pei Deng and Wenqian Zhou and Hanlin Wu},
+      year={2025},
+      eprint={2507.22346},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2507.22346}, 
+}
 % ============================================================
 % BibTeX entries supporting related_works_datasets.tex
 % Cross-checked against source papers where fetched directly;
@@ -1571,11 +1602,15 @@ series = {ACL '01}
   pages   = {1--14},
   year    = {2021}
 }
-@article{cheng2025sartext,
-  author  = {Cheng, Xinxin and He, Yuan and Zhu, Jiacheng and Qiu, Congcong and Wang, Jia and Huang, Qiuting and Yang, Kailin},
-  title   = {Sar-text: A large-scale sar image-text dataset built with sar-narrator and progressive transfer learning},
-  journal = {arXiv preprint arXiv:2507.18743},
-  year    = {2025}
+
+@misc{cheng2025sartext,
+      title={SAR-TEXT: A Large-Scale SAR Image-Text Dataset Built with SAR-Narrator and A Progressive Learning Strategy for Downstream Tasks}, 
+      author={Yiguo He and Xinjun Cheng and Junjie Zhu and Chunping Qiu and Jun Wang and Xichuan Zhang and Qiangjuan Huang and Ke Yang},
+      year={2025},
+      eprint={2507.18743},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2507.18743}, 
 }
 
 @article{wei2025sarlang,
@@ -1594,14 +1629,16 @@ series = {ACL '01}
 
 % ------------------ VQA Methods ------------------
 
-@inproceedings{bazi2022bimodal,
-  author    = {Bazi, Yakoub and Al Rahhal, Mohamad M. and Mekhalfi, Mohamed L. and Al Zuair, Mansour A. A. and Melgani, Farid},
-  title     = {Bi-modal transformer-based approach for visual question answering in remote sensing imagery},
-  journal   = {IEEE Transactions on Geoscience and Remote Sensing},
-  volume    = {60},
-  pages     = {1--11},
-  year      = {2022}
-}
+@ARTICLE{bazi2022bimodal,
+  author={Bazi, Yakoub and Rahhal, Mohamad Mahmoud Al and Mekhalfi, Mohamed Lamine and Zuair, Mansour Abdulaziz Al and Melgani, Farid},
+  journal={IEEE Transactions on Geoscience and Remote Sensing}, 
+  title={Bi-Modal Transformer-Based Approach for Visual Question Answering in Remote Sensing Imagery}, 
+  year={2022},
+  volume={60},
+  number={},
+  pages={1-11},
+  keywords={Transformers;Task analysis;Remote sensing;Visualization;Feature extraction;Head;Computer vision;Co-attention;remote sensing;self-attention;transformers;vision-language models;visual question answering (VQA)},
+  doi={10.1109/TGRS.2022.3192460}}
 
 @article{he2024pers,
   author  = {He, Jiaqi and Liu, Guanghui and Li, Peng and Su, Xin and Jiang, Wu and Zhang, Delu and Zhong, Sheng},
@@ -1719,7 +1756,6 @@ series = {ACL '01}
 }
 
 
-
 @article{feng2023alternate,
   author  = {Feng, Jiangfan and Tang, Encheng and Zeng, Ming and Gu, Zhenyi and Kou, Peiyu and Zheng, Wanqi},
   title   = {Improving visual question answering for remote sensing via alternate-guided attention and combined loss},
@@ -1748,12 +1784,16 @@ series = {ACL '01}
   year      = {2022}
 }
 
-@article{blaga2024counting,
-  author  = {Blaga, Bogdan-Cosmin-Zamfir and Nedevschi, Sergiu},
-  title   = {Improving counting accuracy of post-disaster visual question answering for remote sensing},
-  journal = {arXiv preprint},
-  year    = {2024}
-}
+@ARTICLE{blaga2024counting,
+  author={Blaga, Bianca-Cerasela-Zelia and Nedevschi, Sergiu},
+  journal={IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing}, 
+  title={Improving Counting Accuracy of Postdisaster Visual Question Answering for Remote Sensing}, 
+  year={2026},
+  volume={19},
+  number={},
+  pages={10065-10082},
+  keywords={Accuracy;Visualization;Remote sensing;Transformers;Disasters;Question answering (information retrieval);Feature extraction;Long short term memory;Computer architecture;Data models;Damage assessment;deep learning;multimodal fusion;object counting;remote sensing;visual question answering (VQA)},
+  doi={10.1109/JSTARS.2026.3670705}}
 
 @article{yuan2022acurriculum,
   author  = {Yuan, Zhiqiang and Mou, Lichao and Wang, Qi and Zhu, Xiao Xiang},
@@ -1800,14 +1840,16 @@ series = {ACL '01}
   year    = {2024}
 }
 
-@article{chappuis2025langbias,
-  author  = {Chappuis, Christel and Walt, Enguerrand and Mendez, Valerie and Lobry, Sylvain and Le Saux, Bertrand and Tuia, Devis},
-  title   = {Evaluating language biases in remote sensing {VQA}},
-  journal = {IEEE Geoscience and Remote Sensing Magazine},
-  note    = {accepted for publication},
-  year    = {2025}
-}
-
+@ARTICLE{chappuis2025langbias,
+  author={Chappuis, Christel and Walt, Eliot and Mendez, Vincent and Lobry, Sylvain and Saux, Bertrand Le and Tuia, Devis},
+  journal={IEEE Geoscience and Remote Sensing Magazine}, 
+  title={Evaluating Language Biases in Remote Sensing Visual Question Answering: The role of spatial attributes, language diversity, and the need for clearer evaluation}, 
+  year={2025},
+  volume={13},
+  number={3},
+  pages={216-237},
+  keywords={Visualization;Remote sensing;Measurement;Question answering (information retrieval);Analytical models;Training;Robustness;Grounding;Focusing;Feature extraction},
+  doi={10.1109/MGRS.2025.3564401}}
 % ------------------ VQA Models / foundation models ------------------
 
 @inproceedings{kuckreja2024geochat,
@@ -1882,14 +1924,18 @@ series = {ACL '01}
       primaryClass={cs.CV},
       url={https://arxiv.org/abs/2404.08351}, 
 }
-@article{cheng2022nwpu,
-  author  = {Cheng, Qimin and Huang, Haiyan and Xu, Yuan and Zhou, Ying and Li, Huanying and Wang, Ziming},
-  title   = {Nwpu-captions dataset and mlca-net for remote sensing image captioning},
-  journal = {IEEE Transactions on Geoscience and Remote Sensing},
-  volume  = {60},
-  pages   = {1--19},
-  year    = {2022}
-}
+
+
+@ARTICLE{cheng2022nwpu,
+  author={Cheng, Qimin and Huang, Haiyan and Xu, Yuan and Zhou, Yuzhuo and Li, Huanying and Wang, Zhongyuan},
+  journal={IEEE Transactions on Geoscience and Remote Sensing}, 
+  title={NWPU-Captions Dataset and MLCA-Net for Remote Sensing Image Captioning}, 
+  year={2022},
+  volume={60},
+  number={},
+  pages={1-19},
+  keywords={Remote sensing;Visualization;Semantics;Benchmark testing;Task analysis;Feature extraction;Computer architecture;Contextual attention;NWPU-Captions;remote sensing image captioning},
+  doi={10.1109/TGRS.2022.3201474}}
 
 
 
@@ -2093,15 +2139,24 @@ DOI = {10.3390/rs16091477}
 
 
 
-@article{cong2022satmae,
-  author  = {Cong, Yezhen and Khanna, Samar and Meng, Chenlin and Liu, Patrick and Rozi, Erik and He, Yutong and Burke, Marshall and Lobell, David and Ermon, Stefano},
-  title   = {{SatMAE}: Pre-training transformers for temporal and multi-spectral satellite imagery},
-  journal = {Advances in Neural Information Processing Systems},
-  volume  = {35},
-  pages   = {197--211},
-  year    = {2022}
-}
+%@article{cong2022satmae,
+%  author  = {Cong, Yezhen and Khanna, Samar and Meng, Chenlin and Liu, Patrick and Rozi, Erik and He, Yutong and Burke, Marshall and Lobell, David and Ermon, Stefano},
+%  title   = {{SatMAE}: Pre-training transformers for temporal and multi-spectral satellite imagery},
+%  journal = {Advances in Neural Information Processing Systems},
+%  volume  = {35},
+%  pages   = {197--211},
+%  year    = {2022}
+%}
 
+@inproceedings{
+    cong2022satmae,
+    title={Sat{MAE}: Pre-training Transformers for Temporal and Multi-Spectral Satellite Imagery},
+    author={Yezhen Cong and Samar Khanna and Chenlin Meng and Patrick Liu and Erik Rozi and Yutong He and Marshall Burke and David B. Lobell and Stefano Ermon},
+    booktitle={Advances in Neural Information Processing Systems},
+    editor={Alice H. Oh and Alekh Agarwal and Danielle Belgrave and Kyunghyun Cho},
+    year={2022},
+    url={https://openreview.net/forum?id=WBhqzpF6KYH}
+}
 @inproceedings{reed2023scalemae,
   author    = {Reed, Colorado J. and Gupta, Ritwik and Li, Shufan and Brockman, Sarah and Funk, Christopher and Clipp, Brian and Keutzer, Kurt and Candido, Salvatore and Uyttendaele, Matt and Darrell, Trevor},
   title     = {Scale-{MAE}: A scale-aware masked autoencoder for multiscale geospatial representation learning},
@@ -2149,13 +2204,16 @@ DOI = {10.3390/rs16091477}
   note    = {[unverified -- confirm exact full author list]}
 }
 
-@article{choudhury2025rejepa,
-  author  = {Choudhury, Shabnam and others},
-  title   = {{ReJEPA}: A novel joint-embedding predictive architecture for efficient remote sensing image retrieval},
-  journal = {arXiv preprint arXiv:2504.03169},
-  year    = {2025}
-}
 
+@misc{choudhury2025rejepa,
+      title={REJEPA: A Novel Joint-Embedding Predictive Architecture for Efficient Remote Sensing Image Retrieval}, 
+      author={Shabnam Choudhury and Yash Salunkhe and Sarthak Mehrotra and Biplab Banerjee},
+      year={2025},
+      eprint={2504.03169},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2504.03169}, 
+}
 @inproceedings{choudhury2026xjepa,
   author    = {Choudhury, Shabnam and Salunkhe, Yash and Rajan, Vaibhav and Chaudhuri, Subhasis and Banerjee, Biplab},
   title     = {{X-JEPA}: A novel joint learning cross-modal predictive alignment framework for remote sensing image retrieval},

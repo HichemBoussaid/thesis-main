@@ -53,7 +53,7 @@ dramatically different model predictions. This phenomenon,
 known as linguistic bias, has been identified as a critical
 obstacle to the deployment of RSVQA systems in real-world
 scenarios where users formulate queries freely and
-unpredictably~\cite{chappuis2023curse}.
+unpredictably~\cite{chappuis2025langbias}.
  
 It is worth noting that this work was conducted at a time when
 RSVQA models predominantly relied on a dual-encoder
@@ -211,7 +211,7 @@ rather than collected from human annotators.
  
 In the remote sensing domain specifically, the
 generalization problem is more severe than in standard
-VQA. \textcite{chappuis2023curse} provide a systematic
+VQA. \textcite{chappuis2025langbias} provide a systematic
 analysis through visual-blind models and adversarial
 testing, showing that RSVQA models rely heavily on
 linguistic shortcuts and that biases stem from the
@@ -270,7 +270,7 @@ where back translation typically fails. %These results
 \subsection{Positioning of This Work}
 \label{sec:chap3_positioning}
  
-Within RS, \textcite{chappuis2023curse} diagnose language bias but do not propose a data-centric solution, and \textcite{yuan2023adversarial} address it from the model side through adversarial regularization rather than by enriching the training distribution. The most directly comparable prior work, \textcite{yuan2023multilingual}, does enrich the training distribution, but through back translation, which Section~\ref{sec:chap3_rw_nlp} showed remains structurally close to the original questions and degrades on RS-specific vocabulary. This chapter replaces back translation with instruction-tuned LLM generation as the augmentation source, and evaluates directly whether the resulting syntactic diversity translates into measurable robustness gains on unseen RSVQA phrasings, rather than assuming it does.
+Within RS, \textcite{chappuis2025langbias} diagnose language bias but do not propose a data-centric solution, and \textcite{yuan2023adversarial} address it from the model side through adversarial regularization rather than by enriching the training distribution. The most directly comparable prior work, \textcite{yuan2023multilingual}, does enrich the training distribution, but through back translation, which Section~\ref{sec:chap3_rw_nlp} showed remains structurally close to the original questions and degrades on RS-specific vocabulary. This chapter replaces back translation with instruction-tuned LLM generation as the augmentation source, and evaluates directly whether the resulting syntactic diversity translates into measurable robustness gains on unseen RSVQA phrasings, rather than assuming it does.
 
 \section{LLM-Based Question Reformulation for RSVQA}
 \label{sec:chap3_method}
@@ -678,7 +678,7 @@ question, with duplicates discarded.
 \label{sec:chap3_setup}
  
 \textbf{Model architecture.} Following the findings
-of \cite{chappuis2023curse}, we use a dual-encoder
+of \cite{chappuis2025langbias}, we use a dual-encoder
 architecture as our RSVQA baseline. The visual branch
 consists of a ResNet-152~\cite{he2016resnet} pretrained
 on ImageNet and kept frozen during training. The
